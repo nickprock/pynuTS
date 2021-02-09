@@ -4,7 +4,7 @@
 
 <br>
 
-![peanuts](https://p7.hiclipart.com/preview/335/397/307/5bbd9bcb557e4.jpg)
+![peanuts](http://www.pngall.com/wp-content/uploads/2016/06/Peanut-Free-PNG-Image.png)
 
 <br>
 
