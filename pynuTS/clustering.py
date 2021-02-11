@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
 """
 Created on Thu Jun 18 2020
 
 @project: pynuTS
-@author: nicola
+@author: nicola procopio
 @last_update: 09/02/2021
 @description: Time Series Clustering
-@references: https://iaml.it/blog/serie-storiche-3-dynamic-time-warpi
+@references: https://iaml.it/blog/serie-storiche-3-dynamic-time-warping
 """
 
 from numpy import array
