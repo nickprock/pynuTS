@@ -114,11 +114,11 @@ class DTWKmeans:
 
         assignments_new={}
 
-        for e in tqdm(range(len(self.cluster_centers_))):
+        for e in tqdm(range(len(self.centroids))):
             assignments_new.update({e:[]})
         for ind,i in  enumerate(data):
             dist = []
-            for _, j in enumerate(self.cluster_centers_):
+            for _, j in enumerate(self.centroids):
                 if self.euclidean:
                     criterio = 'euclidean'
                 else:
