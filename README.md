@@ -10,7 +10,7 @@
 
 **pynuTS** is a little python library based on my articles pubblished in 2020 on [**IAML**](https://iaml.it/) blog.
 
-The articles are written in italian, you can read they at the follow links:
+The articles are written in italian, you can read them at the follow links:
 
 * [Breve introduzione al Dynamic Time Warping](https://iaml.it/blog/serie-storiche-3-dynamic-time-warping)
 
@@ -26,7 +26,7 @@ The articles are written in italian, you can read they at the follow links:
 
 #### Work in progress
 
-> The project is work in progress. It is mantained by me and some voluntiers.
+> The project is work in progress. It is mantained some voluntiers and me.
 
 ## Installation
 ------------
@@ -63,7 +63,7 @@ To learn more about making a contribution to pynuTS, please see our [Contributio
 
 ## Citation
 
-If you use pynuTS in a scientific publication, we would appreciate citations:
+If you use pynuTS in a scientific publication, please cite:
 
 ```
 @misc{pynuTS,
@@ -81,4 +81,4 @@ The code present in this project is licensed under the MIT LICENSE.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Licenza Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This work is licensed under <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribuzione 4.0 Internazionale</a>.
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Licenza Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This work is licensed under <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International</a>.
