@@ -40,7 +40,8 @@ class TestDTWKmeans_end2end(object):
         """ 
         slopes = [0.3,0,-0.3]
         list_of_series = make_slopes_dataset(slopes,10,additive_noise_factor=0.0,intercept_noise_factor=0.0,lengths=[3])
-        clts = DTWKmeans(num_clust = 3, num_iter = 10, w=1,euclidean=True)
+        # setting random seed othewise fitting may end with two matching centroids 
+        clts = DTWKmeans(num_clust = 3, num_iter = 10, w=1,euclidean=True,random_seed=101)
 
         clts.fit(list_of_series)
 
