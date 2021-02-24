@@ -30,7 +30,7 @@ def naive_dtw(ts1, ts2, w: int = 1):
     >> import numpy as np
     >> serie_1 = np.array([1, 2, 3, 5, 5, 5, 6], ndmin = 2)
     >> serie_2 = np.array([1, 1, 2, 2, 3, 5], ndmin =2)
-    >> from pynuTS.dtw import naive_dtw
+    >> from pynuTS.naive_dtw import naive_dtw
     >> dist, DTW_matrix = naive_dtw(ts1 = serie_1, ts2 = serie_2, w=1)
     """
 
