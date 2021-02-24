@@ -62,16 +62,20 @@ class DTWKmeans:
         self.w = w
         self.euclidean = euclidean
     
-    def fit(self, data: list):
+    def fit(self, data: list, patience: int = 5):
         """
         Compute k-means clustering.
 
         Parameters
         -----------------------
         data : a list of pandas Series
+        patience: int. 
+            default 1. number of iterations with no improvement after which training will be stopped.
         """
 
         centroids = random.sample(data,self.num_clust)
+        cont = 0
+        old_assignments = {}
         for _ in tqdm(range(self.num_iter)):
             assignments={}
             for e in range(len(centroids)):
@@ -96,6 +100,15 @@ class DTWKmeans:
                     clust_sum=clust_sum+data[k]
                 if len(assignments[key])>0:
                     centroids[key]= clust_sum/len(assignments[key])
+            if len(old_assignments)>0:
+              if cont < patience:
+                if assignments == old_assignments:
+                  cont += 1
+                else:
+                  cont = 0
+              else:
+                break
+            old_assignments = assignments
         self.cluster_centers_, self.labels_ = centroids, assignments
         return self
 
