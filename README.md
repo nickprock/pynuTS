@@ -26,7 +26,7 @@ The articles are written in italian, you can read them at the follow links:
 
 #### Work in progress
 
-> The project is work in progress. It is mantained some voluntiers and me.
+> The project is work in progress. It is mantained by some voluntiers and me.
 
 ## Installation
 ------------
@@ -55,6 +55,9 @@ Or clone the repo and:
 pip install pynuTS-master.zip
 ```
 
+## Demos
+
+After installation, you can try the demo notebooks.
 
 ## Contributing
 
