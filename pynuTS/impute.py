@@ -4,6 +4,7 @@ Created on Wed Apr 01 2020
 @project: pynuTS
 @author: nicola procopio
 @last_update: 11/02/2021
+@decription: impute missing value with rolling mean
 @reference: https://iaml.it/blog/serie-storiche-1-dati-mancanti
 """
 import numpy as np
