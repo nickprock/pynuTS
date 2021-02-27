@@ -8,8 +8,9 @@
 
 <br>
 
+**pynuTS** is a little python library based on my articles pubblished in 2020 on [**IAML**](https://iaml.it/) blog.
 
-Una libreria basata sugli articoli scritti nel 2020 per [**IAML**](https://iaml.it/).
+The articles are written in italian, you can read them at the follow links:
 
 * [Breve introduzione al Dynamic Time Warping](https://iaml.it/blog/serie-storiche-3-dynamic-time-warping)
 
@@ -25,12 +26,47 @@ Una libreria basata sugli articoli scritti nel 2020 per [**IAML**](https://iaml.
 
 #### Work in progress
 
-> Questo lavoro non ha nessuna pretesa (il nome che richiama le noccioline, ovvero cose di poco conto, dice già tutto) se non raccogliere il codice scritto nei notebook e metterlo sotto forma di libreria. Al momento è tutto *WIP* a partire del README.
+> The project is work in progress. It is mantained by some voluntiers and me.
+
+## Installation
+------------
+
+### Dependencies
+~~~~~~~~~~~~
+* Python (>= 3.8.5)
+* NumPy (>= 1.19.2)
+* Pandas (>= 1.1.3)
+* tqdm (>= 4.50.2)
+~~~~~~~~~~~~
+
+### User Installation
+
+The easiest way to install pynuTS is using:
+
+```
+sudo apt install git
+
+pip install git+https://github.com/nickprock/pynuTS.git@main
+```
+
+Or clone the repo and:
+
+```
+pip install pynuTS-master.zip
+```
+
+## Demos
+
+After installation, you can try the demo notebooks.
+
+## Contributing
+
+To learn more about making a contribution to pynuTS, please see our [Contribution Guide](https://github.com/nickprock/pynuTS/blob/main/CONTRIBUTING.md).
 
 
 ## Citation
 
-Se usi questo codice cita questo progetto, grazie.
+If you use pynuTS in a scientific publication, please cite:
 
 ```
 @misc{pynuTS,
@@ -44,8 +80,8 @@ Se usi questo codice cita questo progetto, grazie.
 License
 ---
 
-Il codice di questo progetto è rilasciato sotto licenza MIT LICENSE.
+The code present in this project is licensed under the MIT LICENSE.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Licenza Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />Quest'opera è distribuita con Licenza <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribuzione 4.0 Internazionale</a>.
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Licenza Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This work is licensed under <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International</a>.

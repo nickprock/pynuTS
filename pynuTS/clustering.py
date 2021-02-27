@@ -1,11 +1,10 @@
 """
 Created on Thu Jun 18 2020
-
 @project: pynuTS
 @author: nicola procopio
 @last_update: 09/02/2021
 @description: Time Series Clustering
-@references: https://iaml.it/blog/serie-storiche-3-dynamic-time-warpi
+@references: https://iaml.it/blog/serie-storiche-3-dynamic-time-warping
 """
 
 from numpy import array
@@ -16,7 +15,6 @@ import random
 class DTWKmeans:
     """
     K - Means clustering algorithm using DTW for misure similarity.
-
     Parameters
     -----------------------
     num_clust : int
@@ -27,10 +25,6 @@ class DTWKmeans:
         default 1. Window parameter
     euclidean : bool.
         default True. If True compute DTW with euclidean distance, else use the cosine similarity.
-
-    random_seed : int or None
-        default None. Sed random seed for initial selection of centroids
-
     Example
     -----------------------
     >> import numpy as np
@@ -52,33 +46,28 @@ class DTWKmeans:
     >> list_new = [X_4, X_5]
     >> clts.predict(list_new)
     """
-    def __init__(self, num_clust : int, num_iter : int = 1, w: int = 1, euclidean: bool = True,random_seed=None):
+    def __init__(self, num_clust : int, num_iter : int = 1, w: int = 1, euclidean: bool = True):
         if num_clust < 1:
             raise ValueError("number of cluster must be at least equal to 1")
         if num_iter < 1:
             raise ValueError("number of iteration must be at least equal to 1")
         if w < 1:
             raise ValueError("window parameter must be at least equal to 1")
-        if not (random_seed is None) and not isinstance(random_seed,int):
-            print (type(random_seed))
-            raise ValueError("random seed must be None or int")
 
         self.num_clust = num_clust
         self.num_iter = num_iter
         self.w = w
         self.euclidean = euclidean
-        self.seed = random_seed
     
     def fit(self, data: list):
         """
         Compute k-means clustering.
-
         Parameters
         -----------------------
         data : a list of pandas Series
         """
 
-        centroids = self._init_centroids(data)
+        centroids = random.sample(data,self.num_clust)
         for _ in tqdm(range(self.num_iter)):
             assignments={}
             for e in range(len(centroids)):
@@ -106,69 +95,12 @@ class DTWKmeans:
         self.cluster_centers_, self.labels_ = centroids, assignments
         return self
 
-    def _init_centroids(self,data):
-        """Initialize centroids of self sampling from data, with random seed if specified
-        Parameters 
-        -----------------------
-        data : a list of pandas Series
-
-        Returns
-        -----------------------
-        centroids : a list of pandas series
-        """
-        if not self.seed is None :
-            random.seed(self.seed)
-
-        centroids = random.sample(data,self.num_clust)
-        return centroids
-
-    def _kmeans_iteration(self,data,centroids):
-        """A single iteration of k-means lloyd.
-    
-        Parameters
-        ----------
-        data : a list of pandas Series
-
-        centroids : the current centroids as list of pandas Series, as many as self.num_clust
-
-        Returns
-        -----------------------
-        new_centroids : the updated centroids list
-        """
-        assignments={}
-        for e in range(len(centroids)):
-            assignments.update({e:[]})
-        for ind,i in  enumerate(data):
-            min_dist = float('inf')
-            closest_clust = None
-            for c_ind,j in enumerate(centroids):
-                if self.euclidean:
-                    criterio = 'euclidean'
-                else:
-                    criterio = 'cosine'
-                fastDTW, _, _, _ = accelerated_dtw(array(i), array(j), dist=criterio, warp=self.w)
-                if fastDTW<=min_dist:
-                    min_dist = fastDTW
-                    closest_clust = c_ind
-            if closest_clust in assignments:
-                assignments[closest_clust].append(ind)
-        new_centroids = centroids.copy()
-        for key in assignments:
-            clust_sum=0
-            for k in assignments[key]:
-                clust_sum=clust_sum+data[k]
-            if len(assignments[key])>0:
-                new_centroids[key] = clust_sum/len(assignments[key])
-        return new_centroids
-
     def predict(self, data: list):
         """
         Assingn new series based on precalculated centroid.
-
         Parameters
         -----------------------
         data : a list of pandas Series
-
         Returns
         -----------------------
         assignments: a dictionary {cluster: index_series}
