@@ -11,5 +11,5 @@ setup(
    author_email='nico.pro412@gmail.com',
    url="https://github.com/nickprock/pynuTS",
    packages=['pynuTS'],  #same as name
-   install_requires=['pandas', 'numpy', 'tqdm'], #external packages as dependencies
+   install_requires=['pandas', 'numpy', 'tqdm', 'dtw'], #external packages as dependencies
 )
