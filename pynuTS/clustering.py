@@ -27,6 +27,8 @@ class DTWKmeans:
         default 1. Window parameter
     euclidean : bool.
         default True. If True compute DTW with euclidean distance, else use the cosine similarity.
+    random_seed : None or any  type suitable for random seed initialization (usually int) 
+        default None. Random seed initialization for reproduceability, not initialized if None
 
     Example
     -----------------------
@@ -49,7 +51,7 @@ class DTWKmeans:
     >> list_new = [X_4, X_5]
     >> clts.predict(list_new)
     """
-    def __init__(self, num_clust : int, num_iter : int = 1, w: int = 1, euclidean: bool = True):
+    def __init__(self, num_clust : int, num_iter : int = 1, w: int = 1, euclidean: bool = True, random_seed = None):
         if num_clust < 1:
             raise ValueError("number of cluster must be at least equal to 1")
         if num_iter < 1:
@@ -61,6 +63,7 @@ class DTWKmeans:
         self.num_iter = num_iter
         self.w = w
         self.euclidean = euclidean
+        self.seed = random_seed
     
     def fit(self, data: list, patience: int = 5):
         """
@@ -70,10 +73,11 @@ class DTWKmeans:
         -----------------------
         data : a list of pandas Series
         patience: int. 
-            default 1. number of iterations with no improvement after which training will be stopped.
+            default 5. number of iterations with no improvement after which training will be stopped.
         """
 
-        centroids = random.sample(data,self.num_clust)
+        # centroids = random.sample(data,self.num_clust)
+        centroids = self._init_centroids(data)
         cont = 0
         old_assignments = {}
         for _ in tqdm(range(self.num_iter)):
@@ -111,6 +115,22 @@ class DTWKmeans:
             old_assignments = assignments
         self.cluster_centers_, self.labels_ = centroids, assignments
         return self
+
+    def _init_centroids(self,data):
+        """Initialize centroids of self sampling from data, with random seed if specified
+        Parameters 
+        -----------------------
+        data : a list of pandas Series
+
+        Returns
+        -----------------------
+        centroids : a list of pandas series
+        """
+        if not self.seed is None :
+            random.seed(self.seed)
+
+        centroids = random.sample(data,self.num_clust)
+        return centroids
 
     def predict(self, data: list):
         """
