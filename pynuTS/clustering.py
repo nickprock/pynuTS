@@ -27,6 +27,8 @@ class DTWKmeans:
         default 1. Window parameter
     euclidean : bool.
         default True. If True compute DTW with euclidean distance, else use the cosine similarity.
+    random_seed : None or any  type suitable for random seed initialization (usually int) 
+        default None. Random seed initialization for reproduceability, not initialized if None
 
     Example
     -----------------------
@@ -49,7 +51,7 @@ class DTWKmeans:
     >> list_new = [X_4, X_5]
     >> clts.predict(list_new)
     """
-    def __init__(self, num_clust : int, num_iter : int = 1, w: int = 1, euclidean: bool = True):
+    def __init__(self, num_clust : int, num_iter : int = 1, w: int = 1, euclidean: bool = True, random_seed = None):
         if num_clust < 1:
             raise ValueError("number of cluster must be at least equal to 1")
         if num_iter < 1:
@@ -61,6 +63,7 @@ class DTWKmeans:
         self.num_iter = num_iter
         self.w = w
         self.euclidean = euclidean
+        self.seed = random_seed
     
     def fit(self, data: list, patience: int = 5):
         """
@@ -70,36 +73,14 @@ class DTWKmeans:
         -----------------------
         data : a list of pandas Series
         patience: int. 
-            default 1. number of iterations with no improvement after which training will be stopped.
+            default 5. number of iterations with no improvement after which training will be stopped.
         """
 
-        centroids = random.sample(data,self.num_clust)
+        centroids = self._init_centroids(data)
         cont = 0
         old_assignments = {}
         for _ in tqdm(range(self.num_iter)):
-            assignments={}
-            for e in range(len(centroids)):
-                assignments.update({e:[]})
-            for ind,i in  enumerate(data):
-                min_dist = float('inf')
-                closest_clust = None
-                for c_ind,j in enumerate(centroids):
-                    if self.euclidean:
-                        criterio = 'euclidean'
-                    else:
-                        criterio = 'cosine'
-                    fastDTW, _, _, _ = accelerated_dtw(array(i), array(j), dist=criterio, warp=self.w)
-                    if fastDTW<=min_dist:
-                        min_dist = fastDTW
-                        closest_clust = c_ind
-                if closest_clust in assignments:
-                    assignments[closest_clust].append(ind)
-            for key in assignments:
-                clust_sum=0
-                for k in assignments[key]:
-                    clust_sum=clust_sum+data[k]
-                if len(assignments[key])>0:
-                    centroids[key]= clust_sum/len(assignments[key])
+            assignments,centroids = self._kmeans_iteration(data,centroids)
             if len(old_assignments)>0:
               if cont < patience:
                 if assignments == old_assignments:
@@ -111,6 +92,66 @@ class DTWKmeans:
             old_assignments = assignments
         self.cluster_centers_, self.labels_ = centroids, assignments
         return self
+
+    def _init_centroids(self,data):
+        """Initialize centroids of self sampling from data, with random seed if specified
+        Parameters 
+        -----------------------
+        data : a list of pandas Series
+
+        Returns
+        -----------------------
+        centroids : a list of pandas series
+        """
+        if not self.seed is None :
+            random.seed(self.seed)
+
+        centroids = random.sample(data,self.num_clust)
+        return centroids
+
+
+    def _kmeans_iteration(self,data,centroids):
+        """A single iteration of k-means lloyd.
+    
+        Parameters
+        ----------
+        data : a list of pandas Series
+
+        centroids : the current centroids as list of pandas Series, as many as self.num_clust
+
+        Returns
+        -----------------------
+        assignements : the current samples assignements as dictionary in the form { e : [index] } 
+                       where e is the centroid number and the indexes in the list are the indexes 
+                       of the data elements in the relevent centroid 
+                                
+        """
+        # compute assignements
+        assignments={ e : [] for e in range(self.num_clust) } 
+        for ind,i in  enumerate(data):
+            min_dist = float('inf')
+            closest_clust = None
+            for c_ind,j in enumerate(centroids):
+                if self.euclidean:
+                    criterio = 'euclidean'
+                else:
+                    criterio = 'cosine'
+                fastDTW, _, _, _ = accelerated_dtw(array(i), array(j), dist=criterio, warp=self.w)
+                if fastDTW<=min_dist:
+                    min_dist = fastDTW
+                    closest_clust = c_ind
+            if closest_clust in assignments:
+                assignments[closest_clust].append(ind)
+        # update centroids
+        new_centroids = centroids.copy()
+        for key in assignments:
+            clust_sum=0
+            for k in assignments[key]:
+                clust_sum=clust_sum+data[k]
+            if len(assignments[key])>0:
+                new_centroids[key]= clust_sum/len(assignments[key])
+
+        return assignments,new_centroids
 
     def predict(self, data: list):
         """
