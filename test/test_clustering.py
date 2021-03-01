@@ -85,15 +85,22 @@ class TestDTWKmeans_init(object):
             assert clts
 
     @pytest.mark.parametrize("seed", [None, 101]) 
-    def test_DTWKmeans_init_ranomd_seed(self,seed):
+    def test_DTWKmeans_init_random_seed(self,seed):
         num_clusters = 5
         clts = DTWKmeans(num_clust = num_clusters, random_seed = seed) 
         assert clts
 
+    @pytest.mark.parametrize("euclidean,criterion", [(True,'euclidean'), 
+                                                     (False, 'cosine')]) 
+    def test_DTWKmeans_init_criterion(self,euclidean,criterion):
+        num_clusters = 5
+        clts = DTWKmeans(num_clust = num_clusters, euclidean=euclidean) 
+        assert clts.criterion == criterion
 
-class TestDTWKmeans_random_seed(object):
+
+class TestDTWKmeans_features(object):
     def test_DTWKmeans_fit_is_reproduceable_using_random_seed(self):
-        list_of_series = make_flat_dataset([-1.0,0,1-0],10,additive_noise_factor=0.1,level_noise_factor=0.1,lengths=[5])
+        list_of_series = make_flat_dataset([-1.0,0,1.0],10,additive_noise_factor=0.1,level_noise_factor=0.1,lengths=[5])
         num_clusters = 3
         iterations = 1
         random_seed = 101
@@ -105,4 +112,23 @@ class TestDTWKmeans_random_seed(object):
         df2 = pd.DataFrame(clts_2.cluster_centers_)
         assert np.all(df1.values==df2.values)
 
+    def test_DTWKmeans_inertia_positive(self):
+        list_of_series = make_flat_dataset([-1.0,0,0.5],10,additive_noise_factor=0.3,level_noise_factor=0.3,lengths=[5])
+        num_clusters = 3
+        iterations = 1
+        random_seed = 101
+        clts_1 = DTWKmeans(num_clust = num_clusters, num_iter = iterations, random_seed=random_seed)
+        clts_1.fit(list_of_series)
+        intertia = clts_1._inertia(list_of_series)
+        assert intertia > 0
 
+    def test_DTWKmeans_inertia_decrease_with_iteration_increase(self):
+        list_of_series = make_flat_dataset([-1.0,0,0.5],10,additive_noise_factor=0.3,level_noise_factor=0.3,lengths=[5])
+        num_clusters = 3
+        random_seed = 101
+        clts_1 = DTWKmeans(num_clust = num_clusters, num_iter=1, random_seed=random_seed)
+        clts_1.fit(list_of_series)
+        intertia = clts_1._inertia(list_of_series)
+        clts_2 = DTWKmeans(num_clust = num_clusters, num_iter=2, random_seed=random_seed)
+        clts_2.fit(list_of_series)
+        assert clts_1._inertia(list_of_series) > clts_2._inertia(list_of_series)
