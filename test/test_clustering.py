@@ -7,8 +7,6 @@ import pandas as pd
 
 from demos.ts_gen import make_slopes_dataset,make_flat_dataset
 
-
-
 class TestDTWKmeans_end2end(object):
     def test_example(self):
         """Example of clustering usage as defined in the docstring of DTWKmeans class""" 
@@ -74,6 +72,16 @@ class TestDTWKmeans_init(object):
             clts = DTWKmeans(num_clust = num_clusters, num_iter = iterations ) 
             assert clts
 
+    @pytest.mark.parametrize("initializations", [0, -1, 1, 10, 100]) 
+    def test_DTWKmeans_init_num_initializations_acceptance_range(self,initializations):
+        num_clusters = 5
+        if initializations < 1:
+            with pytest.raises(ValueError):
+                clts = DTWKmeans(num_clust = num_clusters, num_init= initializations)
+        else:
+            clts = DTWKmeans(num_clust = num_clusters, num_init= initializations ) 
+            assert clts
+
     @pytest.mark.parametrize("warp", [0, -1, 5, 10]) 
     def test_DTWKmeans_init_warp_acceptance_range(self,warp):
         num_clusters = 5
@@ -128,7 +136,31 @@ class TestDTWKmeans_features(object):
         random_seed = 101
         clts_1 = DTWKmeans(num_clust = num_clusters, num_iter=1, random_seed=random_seed)
         clts_1.fit(list_of_series)
-        intertia = clts_1._inertia(list_of_series)
         clts_2 = DTWKmeans(num_clust = num_clusters, num_iter=2, random_seed=random_seed)
         clts_2.fit(list_of_series)
-        assert clts_1._inertia(list_of_series) > clts_2._inertia(list_of_series)
+        print (clts_1._inertia(list_of_series))
+        print (clts_2._inertia(list_of_series))
+        #assert False
+        assert clts_1._inertia(list_of_series) >= clts_2._inertia(list_of_series)
+
+    @pytest.mark.parametrize("num_init,expected_inertia", [(1,2023.44),(2,664.40)])
+    def test_DTWKmeans_single_num_init(self,num_init,expected_inertia):
+        list_of_series = flat_dataset(random_seed=101)
+        # running only 2 times even if list of random seeds is 10
+        random_seed = 22
+        clts = DTWKmeans(num_clust = 3, num_iter = 10, num_init = num_init,
+                        w=1,euclidean=True,random_seed=random_seed)
+        clts.fit(list_of_series)
+        inertia=clts._inertia(list_of_series)
+        assert inertia == pytest.approx(expected_inertia,abs=1e-2)
+
+def flat_dataset(random_seed=101):
+        # build the dataset around 3 levels
+        levels = [1.5,0,-1.5]
+        # with different number of elements for each cluster
+        sizes = [15,30,10]
+        # set random seed for reproduceability, you can remove the argument to allow different results for each run
+        list_of_series = make_flat_dataset(levels,sizes,  
+                                        additive_noise_factor=0.4,level_noise_factor=0.4,
+                                        lengths=[10],random_seed=random_seed)
+        return list_of_series

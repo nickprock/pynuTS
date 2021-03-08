@@ -22,7 +22,9 @@ class DTWKmeans:
     num_clust : int
         number of cluster.
     num_iter : int
-        default 1. Number of iterations.
+        default 1. Max number of iterations
+    num_init : int
+        default 1. Number of different initializations
     w :  int.
         default 1. Window parameter
     euclidean : bool.
@@ -51,19 +53,25 @@ class DTWKmeans:
     >> list_new = [X_4, X_5]
     >> clts.predict(list_new)
     """
-    def __init__(self, num_clust : int, num_iter : int = 1, w: int = 1, euclidean: bool = True, random_seed = None):
+    def __init__(self, num_clust : int, num_iter : int = 1, num_init = 1,
+                       w: int = 1, euclidean: bool = True, random_seed = None):
         if num_clust < 1:
             raise ValueError("number of cluster must be at least equal to 1")
         if num_iter < 1:
             raise ValueError("number of iteration must be at least equal to 1")
+        if num_init < 1:
+            raise ValueError("number of initializations must be at least equal to 1")
         if w < 1:
             raise ValueError("window parameter must be at least equal to 1")
 
         self.num_clust = num_clust
         self.num_iter = num_iter
+        self.num_init = num_init
         self.w = w
         self.criterion = {True : 'euclidean', False : 'cosine'}[euclidean]
         self.seed = random_seed
+        if not self.seed is None :
+            random.seed(self.seed)
     
     def fit(self, data: list, patience: int = 5):
         """
@@ -76,16 +84,20 @@ class DTWKmeans:
             default 5. number of iterations with no improvement after which training will be stopped.
         """
 
-        centroids = self._init_centroids(data)
-        stable_count = 0
-        old_assignments = {}
-        for _ in tqdm(range(self.num_iter)):
-            assignments,centroids = self._kmeans_iteration(data,centroids)
-            stable_count = _increment_or_reset(stable_count,assignments,old_assignments)
-            if stable_count >= patience :
-                break
-            old_assignments = assignments
-        self.cluster_centers_, self.labels_ = centroids, assignments
+        min_inertia = float('inf')
+        for init_run in range(self.num_init):
+            centroids = self._init_centroids(data)
+            stable_count = 0
+            old_assignments = {}
+            for iter_run in tqdm(range(self.num_iter)):
+                assignments,centroids = self._kmeans_iteration(data,centroids)
+                stable_count = _increment_or_reset(stable_count,assignments,old_assignments)
+                if stable_count >= patience :
+                    break
+                old_assignments = assignments
+            if (inertia := self._generalized_inertia(centroids, assignments, data)) < min_inertia :
+                self.cluster_centers_, self.labels_ = centroids, assignments
+                min_inertia = inertia
         return self
 
     def _init_centroids(self,data):
@@ -98,8 +110,7 @@ class DTWKmeans:
         -----------------------
         centroids : a list of pandas series
         """
-        if not self.seed is None :
-            random.seed(self.seed)
+
 
         centroids = random.sample(data,self.num_clust)
         return centroids
@@ -157,9 +168,12 @@ class DTWKmeans:
         -----------------------
         intertia : float 
         """
+        return self._generalized_inertia(self.cluster_centers_, self.labels_, data)
+
+    def _generalized_inertia(self, centroids, labels, data):
         inertia = 0
-        for e,centroid in enumerate(self.cluster_centers_):
-            members = self.labels_[e]
+        for e,centroid in enumerate(centroids):
+            members = labels[e]
             for member_index in members:
                 i = centroid
                 j = data[member_index]
