@@ -87,7 +87,7 @@ def make_slopes_dataset(slopes,samples,additive_noise_factor=0.01,intercept_nois
     return(list_of_series)
 
 
-def make_flat_dataset(levels,samples,level_noise_factor=0.01,additive_noise_factor=0.01,lengths=None):
+def make_flat_dataset(levels,samples,level_noise_factor=0.01,additive_noise_factor=0.01,lengths=None,random_seed=None):
     """Generate a list of flat time series of various levels with some white noise on the samples
     Lenght of each time series is 100 by default, can be changed with the lengths parameter.
     
@@ -95,7 +95,9 @@ def make_flat_dataset(levels,samples,level_noise_factor=0.01,additive_noise_fact
     -----------------------
     slopes : list of levels, e.g. [2.0,1.0,-1.0] means lines mean values will be 2.0, 1.0, -1.0
 
-    samples : number of series produced for each slope
+    samples : int or list of int, number of series produced for each slope
+        if int, all clusters have the same size
+        if list of int, size of each cluster. Shall have same length as slopes
 
     level_noise_factor : multiplier to a random factor added to the luevel
 
@@ -109,11 +111,14 @@ def make_flat_dataset(levels,samples,level_noise_factor=0.01,additive_noise_fact
     list of Pandas Series. the names of the series are int, and are unique per each code.
         Series names have the same meaning as the id of the cluster.
     """
-    list_of_series = []
+    samples = samples if isinstance(samples,list) else [samples]*len(levels)
     if lengths is None:
         lengths = [100] 
-    for i,level in enumerate(levels):
-        for _ in range(samples):
+    if not random_seed is None :
+            np.random.seed(random_seed)
+    list_of_series = []
+    for i,level,n_samples in zip(range(len(levels)),levels,samples):
+        for _ in range(n_samples):
             level_adder = (np.random.random()-0.5) * level_noise_factor
             length = lengths[random.randint(0,len(lengths))-1]
             series = [level+level_adder for _ in range(length)] + \
@@ -121,3 +126,7 @@ def make_flat_dataset(levels,samples,level_noise_factor=0.01,additive_noise_fact
             sample = pd.Series(series,name=i)
             list_of_series.append(sample)
     return(list_of_series)
+
+
+def lists_of_series_are_equal(list_of_series_1,list_of_series_2):
+    return all([(s1==s2).all() for s1,s2 in zip(list_of_series_1,list_of_series_2)])
