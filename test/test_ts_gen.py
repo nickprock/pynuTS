@@ -5,7 +5,8 @@ from pynuTS.clustering import DTWKmeans
 import numpy as np
 import pandas as pd
 
-from demos.ts_gen import make_slopes_dataset,make_flat_dataset,lists_of_series_are_equal
+from demos.ts_gen import make_slopes_dataset,make_flat_dataset
+from demos.ts_utils import lists_of_series_are_equal
 
 
 class TestFlat(object):

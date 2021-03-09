@@ -126,7 +126,3 @@ def make_flat_dataset(levels,samples,level_noise_factor=0.01,additive_noise_fact
             sample = pd.Series(series,name=i)
             list_of_series.append(sample)
     return(list_of_series)
-
-
-def lists_of_series_are_equal(list_of_series_1,list_of_series_2):
-    return all([(s1==s2).all() for s1,s2 in zip(list_of_series_1,list_of_series_2)])
