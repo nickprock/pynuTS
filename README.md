@@ -28,6 +28,13 @@ The articles are written in italian, you can read them at the follow links:
 
 > The project is work in progress. It is mantained by some voluntiers and me.
 
+### What's New?
+
+New features in *version 0.1.5*:
+
+* K-Means upgrade: **convergence criterion**
+* New demo notebooks
+
 ## Installation
 ------------
 
@@ -37,6 +44,7 @@ The articles are written in italian, you can read them at the follow links:
 * NumPy (>= 1.19.2)
 * Pandas (>= 1.1.3)
 * tqdm (>= 4.50.2)
+* dtw (>= 1.4.0)
 ~~~~~~~~~~~~
 
 ### User Installation
