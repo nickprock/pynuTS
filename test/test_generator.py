@@ -29,6 +29,11 @@ class TestAR(object):
         x = m.generate(10)
         assert x == [float(x) for x in range(11,21)]
 
+    def test_linear_using_buffer(self):
+        m = AR(c=1,sigma=0,coeff=[1],x_buff=[4])
+        x = m.generate(10)
+        assert x == [float(x) for x in range(5,15)]
+
     def test_white_noise(self):
         m = AR(c=0,sigma=1,coeff=[])
         s = pd.Series(m.generate(1000))
@@ -78,6 +83,17 @@ class TestMA(object):
                     -3.18772026,-5.60728182]
         assert x == pytest.approx(expected)
 
+    def test_seeded_run_using_buffer(self):
+        random.seed(1)
+        m = MA(mu=0,sigma=1,coeff=[1,2,3],e_buff=[10,9,8])
+        x = m.generate(10)
+        expected = [57.28818475315546,  45.73763036185523,
+                    28.09215092394896,   6.0652376348325605,
+                     2.6242915779000637,-2.390918573400903,
+                    -5.468746036302335, -5.672783226762393,
+                    -3.1877202581453714,-5.60728181909532]
+        assert x == pytest.approx(expected)
+
 
 class TestARMA(object):
     def test_default_creation(self):
@@ -100,6 +116,11 @@ class TestARMA(object):
         assert x == [float(x) for x in range(1,11)]
         x = m.generate(10)
         assert x == [float(x) for x in range(11,21)]
+
+    def test_linear_using_buffer(self):
+        m = ARMA(c=1,sigma=0,pcoeff=[1],x_buff=[4])
+        x = m.generate(10)
+        assert x == [float(x) for x in range(5,15)]
 
     def test_white_noise(self):
         m = ARMA(c=0,sigma=1,pcoeff=[])
@@ -132,4 +153,27 @@ class TestARMA(object):
                      2.62429158,-2.39091857, 
                     -5.46874604,-5.67278323,
                     -3.18772026,-5.60728182]
+        assert x == pytest.approx(expected)
+
+    def test_seeded_run_ma_using_buffer(self):
+        random.seed(1)
+        m = ARMA(c=0,sigma=1,qcoeff=[1,2,3],e_buff=[10,9,8])
+        x = m.generate(10)
+        expected = [57.28818475315546,  45.73763036185523,
+                    28.09215092394896,   6.0652376348325605,
+                     2.6242915779000637,-2.390918573400903,
+                    -5.468746036302335, -5.672783226762393,
+                    -3.1877202581453714,-5.60728181909532]
+        assert x == pytest.approx(expected)
+
+    def test_seeded_run_arma_using_buffers(self):
+        random.seed(1)
+        m = ARMA(c=1,sigma=1,pcoeff=[1,-1,0.5],qcoeff=[1,2,-1],
+                             x_buff=[-4,-6,8],e_buff=[2,1,-1])
+        x = m.generate(10)
+        expected = [13.288184753155463,  3.0258151150106967,
+                    -0.1702187141958067, 5.360557169581937,
+                     4.870192584384071, -2.2317357514497194,
+                    -5.832221183458628, -1.469479506162701,
+                     0.9338154760988293,-1.031684748519612]
         assert x == pytest.approx(expected)
