@@ -8,6 +8,7 @@ import random
 
 
 from dataclasses import dataclass,field
+from collections import deque
 from typing import List
 
 
@@ -36,13 +37,16 @@ class AR:
     c     : float, c is the drift constant
     sigma : float, standard deviation of the gaussian random error, with mean = 0
     x_buff: list of floats, keeps memory of the last p elements of the time series. 
-            x_buff[0] is the oldest, x_buff[p-1] is the more recent. 
+            x_buff[0] is the oldest, x_buff[p-1] is the more recent.
             Empty list by default
     """
     coeff : List[float] = field(default_factory=list)
     c     : float = 0.0
     sigma : float = 1.0
     x_buff: List[float] = field(default_factory=list)
+
+    def __post_init__(self):
+        self.x_buff = deque([0]*len(self.coeff) + self.x_buff,maxlen = len(self.coeff)) 
 
     def generate(self, n = 100):
         x = []
@@ -52,10 +56,10 @@ class AR:
 
     def _next_x(self):
         next_e = random.gauss(0,self.sigma)
-        next_x = self.c + sum([p*xt for p,xt in zip(self.coeff,self.x_buff[::-1])]) + next_e
-        if len(self.coeff) > 0 :
-            self.x_buff.append(next_x)
-            self.x_buff = self.x_buff[-len(self.coeff):]
+        z = zip(self.coeff[::-1],self.x_buff)
+        next_x = self.c + sum([p*xt for p,xt in z]) + next_e
+        print(z,next_x)
+        self.x_buff.append(next_x)
         return next_x  
 
 # 
@@ -89,6 +93,9 @@ class MA:
     sigma : float = 1.0
     e_buff: List[float] = field(default_factory=list)
 
+    def __post_init__(self):
+        self.e_buff = deque([0]*len(self.coeff) + self.e_buff,maxlen = len(self.coeff)) 
+
     def generate(self, n = 100):
         x = []
         for _ in range(n):
@@ -97,10 +104,9 @@ class MA:
 
     def _next_x(self):
         next_e = random.gauss(0,self.sigma)
-        next_x = self.mu + next_e + sum([q*et for q,et in zip(self.coeff,self.e_buff[::-1])])
-        if len(self.coeff) > 0 :
-            self.e_buff.append(next_e)
-            self.e_buff = self.e_buff[-len(self.coeff):]
+        z = zip(self.coeff[::-1],self.e_buff)
+        next_x = self.mu + next_e + sum([q*et for q,et in z])
+        self.e_buff.append(next_e)
         return next_x
         
 
@@ -145,6 +151,10 @@ class ARMA:
     e_buff : List[float] = field(default_factory=list)
     x_buff : List[float] = field(default_factory=list)
 
+    def __post_init__(self):
+        self.x_buff = deque([0]*len(self.pcoeff) + self.x_buff,maxlen = len(self.pcoeff)) 
+        self.e_buff = deque([0]*len(self.qcoeff) + self.e_buff,maxlen = len(self.qcoeff)) 
+
     def generate(self, n = 100):
         x = []
         for _ in range(n):
@@ -153,12 +163,10 @@ class ARMA:
 
     def _next_x(self):
         next_e = random.gauss(0,self.sigma)
-        next_x = self.c + sum([p*xt for p,xt in zip(self.pcoeff,self.x_buff[::-1])]) 
-        next_x += next_e + sum([q*et for q,et in zip(self.qcoeff,self.e_buff[::-1])])
-        if len(self.pcoeff) > 0 :
-            self.x_buff.append(next_x)
-            self.x_buff = self.x_buff[-len(self.pcoeff):]
-        if len(self.qcoeff) > 0 :
-            self.e_buff.append(next_e)
-            self.e_buff = self.e_buff[-len(self.qcoeff):]
+        zx = zip(self.pcoeff[::-1],self.x_buff)
+        ze = zip(self.qcoeff[::-1],self.e_buff)
+        next_x = self.c + sum([p*xt for p,xt in zx]) 
+        next_x += next_e + sum([q*et for q,et in ze])
+        self.x_buff.append(next_x)
+        self.e_buff.append(next_e)
         return next_x
