@@ -39,7 +39,7 @@ class AR:
             x_buff[0] is the oldest, x_buff[p-1] is the more recent. 
             Empty list by default
     """
-    coeff : List[float]
+    coeff : List[float] = field(default_factory=list)
     c     : float = 0.0
     sigma : float = 1.0
     x_buff: List[float] = field(default_factory=list)
