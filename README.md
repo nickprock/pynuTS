@@ -43,6 +43,7 @@ New features in *version 0.1.5*:
 * Python (>= 3.8.5)
 * NumPy (>= 1.19.2)
 * Pandas (>= 1.1.3)
+* Scikit-learn (>= 0.23.2)
 * tqdm (>= 4.50.2)
 * dtw (>= 1.4.0)
 ~~~~~~~~~~~~
