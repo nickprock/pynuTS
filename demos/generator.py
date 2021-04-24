@@ -16,7 +16,7 @@ from typing import List
 # ### [Auto-Regressive Integrated Moving-Average model](https://en.wikipedia.org/wiki/Autoregressive_integrated_moving_average)
 #
 @dataclass
-class ARIMA:
+class ARIMA_wrong:
     """Auto Regressive Moving Average time series generator
     ARMA time series of orders (p,d,q) is computed as follows
     Xt = c + error(t) +        X(t-1) +        X(t-2) + ... +             X(t-d) + 
@@ -56,6 +56,66 @@ class ARIMA:
 
     def generate(self, n = 100):
         return self._model.generate(n)
+
+
+
+#
+# ### [Auto-Regressive Integrated Moving-Average model](https://en.wikipedia.org/wiki/Autoregressive_integrated_moving_average)
+#
+@dataclass
+class ARIMA:
+    """Auto Regressive Moving Average time series generator
+    ARMA time series of orders (p,d,q) is computed as follows
+    xt = c + error(t) + phi1 * x(t-1) + phi2 * x(t-2) + ... + phip(t-p) * x(t-p) +
+                        theta1 * error(t-1) + theta2 * error(t-2) + ... + thetaq * error(t-q)
+    
+    Xt = cumulative sum of xt d times
+
+    Params:
+    ---------
+    pcoeff : list of p floats, [phi1 , phi2, ... , phip]  
+    d      : order of integration
+    qcoeff : list of q floats, [theta1 , theta2, ... , thetaq]  
+    c      : float, c is the drift constant
+    sigma  : float, standard deviation of the gaussian random error, with mean = 0
+    e_buff: list of floats, keeps memory of the last q values of the error variable. 
+            e_buff[0] is the oldest, e_buff[q-1] is the more recent. 
+            Empty list by default
+    x_buff: list of floats, keeps memory of the last p elements of the time series. 
+            x_buff[0] is the oldest, x_buff[p-1] is the more recent. 
+            Empty list by default
+            
+    """
+    pcoeff : List[float] = field(default_factory=list)
+    d      : int = 0 
+    qcoeff : List[float] = field(default_factory=list)
+    c      : float = 0.0
+    sigma  : float = 1.0
+    e_buff : List[float] = field(default_factory=list)
+    x_buff : List[float] = field(default_factory=list)
+
+    def __post_init__(self):
+        self._model = ARMA(c=self.c, pcoeff = self.pcoeff, qcoeff = self.qcoeff, sigma=self.sigma, 
+                                     x_buff = self.x_buff, e_buff = self.e_buff)
+        self.x_buff = self._model.x_buff
+        self.e_buff = self._model.e_buff
+        self.i_cache = deque([0]*self.d,self.d)
+
+    def generate(self, n = 100):
+        x = self._model.generate(n)
+        x = self.integrate(x)
+        return x
+    
+    def integrate(self,x) :
+        if self.d > 0 :
+            X = np.array([0] + x)
+            for n in range(self.d):
+                X[0] = self.i_cache.popleft()
+                X = X.cumsum()
+                self.i_cache.append(X[-1])
+            return list(X)[1:] 
+        return x
+
 
 # 
 # ### [Auto-Regressive Moving-Average model](https://en.wikipedia.org/wiki/Autoregressive%E2%80%93moving-average_model)

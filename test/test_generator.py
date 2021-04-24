@@ -284,3 +284,23 @@ class TestARIMA(object):
                    -0.04351934846143368,-1.4803487935639636, 
                    -1.2810368170802098, -1.147662212421605]
         assert x == pytest.approx(expected)
+
+    def test_full_arima(self):
+        random.seed(1)
+        m = ARIMA(pcoeff=[1,-1],d=2,qcoeff=[1,1,1,1,1])
+        x = m.generate(10)
+        expected = [ 1.2881847531554629, 6.602184621321622,
+                    17.457781022136512, 31.868581360411298,
+                    45.24023840821498,  54.99613204963708,
+                    60.84370147353184,  62.18073093086161,
+                    58.83054165128004,  52.11658886910866]
+        assert x == pytest.approx(expected)
+
+    def test_full_arima_10_equivalent_to_5_and_5(self):
+        random.seed(1)
+        m1 = ARIMA(pcoeff=[1,-1],d=2,qcoeff=[1,1,1,1,1])
+        x1 = m1.generate(10)
+        random.seed(1)
+        m2 = ARIMA(pcoeff=[1,-1],d=2,qcoeff=[1,1,1,1,1])
+        x2 = m2.generate(5) + m2.generate(5)
+        assert x1 == pytest.approx(x2)
