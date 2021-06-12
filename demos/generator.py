@@ -101,6 +101,11 @@ class ARIMA:
         self.e_buff = self._model.e_buff
         self.i_cache = deque([0]*self.d,self.d)
 
+    def __str__(self):
+        str = f'ARIMA({len(self.pcoeff)},{self.d},{len(self.qcoeff)}) sigma={self.sigma}'
+        return str
+
+
     def generate(self, n = 100):
         x = self._model.generate(n)
         x = self.integrate(x)
