@@ -9,6 +9,7 @@ Created on Wed May 15 2021
 """
 
 import numpy as np
+from pandas import cut
 from sklearn.base import BaseEstimator, TransformerMixin
 
 class NaiveSAX(TransformerMixin, BaseEstimator):
@@ -27,7 +28,10 @@ class NaiveSAX(TransformerMixin, BaseEstimator):
 
     Example
     -----------------------
-
+    >> import numpy as np
+    >> ts1 = 2.5 * np.random.randn(100,) + 3
+    >> ts2 = 4.5 * np.random.randn(100,) + 13
+    >> from pynuTS.decomposition import NaiveSAX
     """
     def __init__(self, levels: list = [0.25, 0.75], labels: list = ["A", "B", "C"], windows: int = 2):
         if windows < 2:
@@ -54,8 +58,42 @@ class NaiveSAX(TransformerMixin, BaseEstimator):
         X_stand = (X - X_mean.T)/X_std.T
 
         # don't lose information
-        new_len = int(np.ceil((X_stand.shape[1]/self.windows)))
-        #df_PAA = []
-        
 
-        return X_stand, new_len
+        if (X_stand.shape[1]%self.windows)==0:
+            up = int(X_stand.shape[1]/self.windows)
+        else:
+            up = int((X_stand.shape[1]/self.windows)+1)
+        paa = [None]*up
+        ind=0
+        for i in range(0, X_stand.shape[1], windows):
+            avg = np.nanmean(X_stand[:,i:i+windows], axis=1).tolist()
+            paa.append(avg)
+            ind +=1
+        paa = np.transpose(paa)
+        """
+        binned=[None]*up
+        bins = [np.min(paa[j])-.01]
+        for j in range(1,len(self.levels)):
+            bins.append(np.quantile(paa[j],self.level[0]))
+        bins.append(np.max(paa[j])+.01)
+        for k in range(len(paa)):
+            binned[j] = cut(paa[j], bins, labels=self.labels)
+        """
+        d = {"vect": X_stand, "up":up, "ind":ind, "paa":paa}
+
+        return d
+
+import numpy as np
+ts1 = np.array([[1,3,3,4,5]])
+ts2 = np.array([[1,2,3,4]])
+ts3 = [ts1,ts2]
+
+z= []
+z1= []
+sax=NaiveSAX()
+for s in ts3:
+    x =sax.fit_transform(s)
+    z.append(x["ind"])
+    z1.append(x["paa"])
+print(z)
+print(z1)
