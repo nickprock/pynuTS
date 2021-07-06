@@ -106,26 +106,23 @@ class naiveSAX(BaseEstimator, TransformerMixin):
         
         binned = []
 
-        # controllare assi quantile
-        # controllare for
-
         if self.quantile:
             for j in range(len(df_PAA)):
                 if df_PAA[j] < np.quantile(df_PAA,self.bounds[0]):
                     binned.append(self.levels[0])
-                elif ((df_PAA[j] >= np.quantile(df_PAA,self.bounds[0])) & (df_PAA[j] < np.quantile(df_PAA,self.bounds[1]))):
-                    binned.append(self.levels[1])
-                #if df_PAA[j] >= np.quantile(df_PAA[j],self.bounds[-1]):
-                else:
+                for k in range(1, len(self.bounds)):
+                    if ((df_PAA[j] >= np.quantile(df_PAA,self.bounds[k-1])) & (df_PAA[j] < np.quantile(df_PAA,self.bounds[k]))):
+                        binned.append(self.levels[k])
+                if df_PAA[j] >= np.quantile(df_PAA,self.bounds[-1]):
                     binned.append(self.levels[-1])
         else:
             for j in range(len(df_PAA)):
                 if df_PAA[j] < self.bounds[0]:
                     binned.append(self.levels[0])
-                elif ((df_PAA[j] >= self.bounds[0]) & (df_PAA[j] < self.bounds[1])):
-                    binned.append(self.levels[1])
-                #if df_PAA[j] >= self.bounds[-1]:
-                else:
+                for k in range(1, len(self.bounds)):
+                    if ((df_PAA[j] >= self.bounds[k-1]) & (df_PAA[j] < self.bounds[k])):
+                        binned.append(self.levels[k])
+                if df_PAA[j] >= self.bounds[-1]:
                     binned.append(self.levels[-1])
         
         sax_string = ''.join(binned)
