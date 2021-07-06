@@ -22,9 +22,9 @@ class naiveSAX(BaseEstimator, TransformerMixin):
 
         Parameters
         -----------------------
-        levels : list
+        bounds : list
             default [0.25, 0.75]. Limits in which to fit the values ​​of the series. With default values we have 3 levels. [(min, 1st quartile);(1st quartile, 3rd quartile), (3rd quartile, max)].
-        labels: list
+        levels: list
             default ["A", "B", "C"]. Labels for SAX Encoding.
         windows : int
             default 2. Time window for PAA (Piecewise Aggregate Approximation).
@@ -41,11 +41,24 @@ class naiveSAX(BaseEstimator, TransformerMixin):
         >> ts1 = 2.5 * np.random.randn(100,) + 3
         >> ts2 = 4.5 * np.random.randn(100,) + 13
         >> from pynuTS.decomposition import NaiveSAX
-    """
+        """
+        try:
+            if len(levels)!= (len(bounds) + 1):
+                raise ValueError("Length of levels must be equals at length of bounds plus 1")
+        except ValueError as error:
+            print('Caught an error: ' + repr(error))
+        
+        try:
+            if windows<1:
+                raise ValueError("Windows must be a positive integer")
+        except ValueError as error:
+            print('Caught an error: ' + repr(error))
+
         self.windows = windows
         self.bounds = bounds
         self.levels = levels
         self.quantile = quantile
+
         
     def fit_transform(self, X):
         """
@@ -93,16 +106,14 @@ class naiveSAX(BaseEstimator, TransformerMixin):
         
         binned = []
 
-        # controllare assi quantile
-
-        if quantile:
+        if self.quantile:
             for j in range(len(df_PAA)):
-                if df_PAA[j] < np.quantile(df_PAA[j],self.bounds[0]):
+                if df_PAA[j] < np.quantile(df_PAA,self.bounds[0]):
                     binned.append(self.levels[0])
                 for k in range(1, len(self.bounds)):
-                    if ((df_PAA[j] >= np.quantile(df_PAA[j],self.bounds[k-1])) & (df_PAA[j] < np.quantile(df_PAA[j],self.bounds[k]))):
+                    if ((df_PAA[j] >= np.quantile(df_PAA,self.bounds[k-1])) & (df_PAA[j] < np.quantile(df_PAA,self.bounds[k]))):
                         binned.append(self.levels[k])
-                if df_PAA[j] >= np.quantile(df_PAA[j],self.bounds[-1]):
+                if df_PAA[j] >= np.quantile(df_PAA,self.bounds[-1]):
                     binned.append(self.levels[-1])
         else:
             for j in range(len(df_PAA)):
