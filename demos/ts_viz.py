@@ -17,7 +17,7 @@ def plot_list_of_ts_over_subplots(list_of_series,figsize=(14,3)):
     df = pd.DataFrame(list_of_series)
     clusters = list(set(df.index))
     if len(clusters) > 1:
-        fig, axs = plt.subplots(len(clusters), sharex=True, sharey=True,figsize=figsize)
+        fig, axs = plt.subplots(len(clusters), sharex=True, sharey=False,figsize=figsize)
         for i,c in enumerate(clusters):
             df_cluster = df.loc[[c]]
             for _,l in df_cluster.iterrows():

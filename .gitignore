@@ -1,6 +1,9 @@
 # private reports folder
 .reports/
 
+# private scratch folder
+scratch/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
