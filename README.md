@@ -79,8 +79,9 @@ If you use pynuTS in a scientific publication, please cite:
 
 ```
 @misc{pynuTS,
-  author =       {Nicola Procopio},
+  author =       {Nicola Procopio and Marcello Morchio},
   title =        {pynuTS},
+  version = 	 {0.1.5}
   howpublished = {\url{https://github.com/nickprock/pynuTS/}},
   year =         {2020}
 }

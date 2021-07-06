@@ -11,9 +11,10 @@ Created on Thu Jun 18 2020
 from numpy import array
 from tqdm import tqdm
 from dtw import accelerated_dtw
+from sklearn.base import BaseEstimator
 import random
 
-class DTWKmeans:
+class DTWKmeans(BaseEstimator):
     """
     K - Means clustering algorithm using DTW for misure similarity.
 
