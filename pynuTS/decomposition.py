@@ -3,7 +3,7 @@ Created on Wed May 15 2021
 
 @project: pynuTS
 @author: nicola procopio
-@last_update: 15/05/2021
+@last_update: 07/07/2021
 @description: dimensionality reduction by SAX encoding
 @reference: https://iaml.it/blog/serie-storiche-2-sax-encoding
 """
