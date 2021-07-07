@@ -30,9 +30,10 @@ The articles are written in italian, you can read them at the follow links:
 
 ### What's New?
 
-New features in *version 0.1.5*:
+New features in *version 0.2.0*:
 
-* K-Means upgrade: **convergence criterion**
+* SAX Encoding refactoring: new module decompose
+* Time series generator *(experimental)*
 * New demo notebooks
 
 ## Installation
@@ -43,6 +44,7 @@ New features in *version 0.1.5*:
 * Python (>= 3.8.5)
 * NumPy (>= 1.19.2)
 * Pandas (>= 1.1.3)
+* Scikit-learn (>= 0.23.2)
 * tqdm (>= 4.50.2)
 * dtw (>= 1.4.0)
 ~~~~~~~~~~~~
