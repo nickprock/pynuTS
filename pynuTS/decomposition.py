@@ -14,7 +14,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 import numpy as np
 from pandas import Series
 
-class naiveSAX(BaseEstimator, TransformerMixin):
+class NaiveSAX(BaseEstimator, TransformerMixin):
     def __init__(self, levels: list = ["A", "B", "C"], bounds: list = [0.25, 0.75], windows: int = 2, quantile: bool = True):
         """
         SAX Encoding (Symbolic Aggregate approXimation) is the first symbolic representation for time series that allows for dimensionality reduction and indexing with a lower-bounding distance measure.
@@ -23,17 +23,17 @@ class naiveSAX(BaseEstimator, TransformerMixin):
         Parameters
         -----------------------
         bounds : list
-            default [0.25, 0.75]. Limits in which to fit the values ​​of the series. With default values we have 3 levels. [(min, 1st quartile);(1st quartile, 3rd quartile), (3rd quartile, max)].
+            default [0.25, 0.75]. Limits in which to fit the values of the series. With default values we have 3 levels. [(min, 1st quartile);(1st quartile, 3rd quartile), (3rd quartile, max)].
         levels: list
             default ["A", "B", "C"]. Labels for SAX Encoding.
         windows : int
             default 2. Time window for PAA (Piecewise Aggregate Approximation).
         quantile: bool
-            default True.
+            default True. If False the values in bounds are used without apply any function.
 
         Returns
         -----------------------
-        sax_string: 
+        sax_string
 
         Example
         -----------------------
@@ -41,6 +41,12 @@ class naiveSAX(BaseEstimator, TransformerMixin):
         >> ts1 = 2.5 * np.random.randn(100,) + 3
         >> ts2 = 4.5 * np.random.randn(100,) + 13
         >> from pynuTS.decomposition import NaiveSAX
+        >> sax = NaiveSAX()
+        >> ts1_decomposed = sax.fit_transform(ts1)
+        >> print(ts1_decomposed)
+        >> ts3 = np.vstack((ts1, ts2))
+        >> ts3_decomposed = np.apply_along_axis(sax.fit_transform, 1, ts3)
+        >> print(ts3_decomposed)
         """
         try:
             if len(levels)!= (len(bounds) + 1):
