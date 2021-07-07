@@ -30,9 +30,10 @@ The articles are written in italian, you can read them at the follow links:
 
 ### What's New?
 
-New features in *version 0.1.5*:
+New features in *version 0.2.0*:
 
-* K-Means upgrade: **convergence criterion**
+* SAX Encoding refactoring: new module decompose
+* Time series generator *(experimental)*
 * New demo notebooks
 
 ## Installation
