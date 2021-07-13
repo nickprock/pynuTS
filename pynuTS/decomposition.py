@@ -95,13 +95,6 @@ class NaiveSAX(BaseEstimator, TransformerMixin):
                 raise TypeError("X must be a 1-D numpy.array")
         except TypeError as error:
             print('Caught an error: ' + repr(error))
-            
-        
-        if (len(X)%self.windows)==0:
-            up = int(len(X)/self.windows)
-        else:
-            up = int((len(X)/self.windows)+1)
-        #print(up)
     
         df_PAA = []
     
