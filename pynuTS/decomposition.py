@@ -51,14 +51,11 @@ class NaiveSAX(BaseEstimator, TransformerMixin):
         try:
             if len(levels)!= (len(bounds) + 1):
                 raise ValueError("Length of levels must be equals at length of bounds plus 1")
-        except ValueError as error:
-            print('Caught an error: ' + repr(error))
         
         try:
             if windows<1:
                 raise ValueError("Windows must be a positive integer")
-        except ValueError as error:
-            print('Caught an error: ' + repr(error))
+        
 
         self.windows = windows
         self.bounds = bounds
@@ -87,21 +84,10 @@ class NaiveSAX(BaseEstimator, TransformerMixin):
                 pass
             else:
                 raise TypeError("X must be a numpy.array or a list or a pandas Series")
-        except TypeError as error:
-            print('Caught an error: ' + repr(error))
         
         try:
             if X.ndim > 1:
                 raise TypeError("X must be a 1-D numpy.array")
-        except TypeError as error:
-            print('Caught an error: ' + repr(error))
-            
-        
-        if (len(X)%self.windows)==0:
-            up = int(len(X)/self.windows)
-        else:
-            up = int((len(X)/self.windows)+1)
-        #print(up)
     
         df_PAA = []
     
