@@ -30,7 +30,7 @@ The articles are written in italian, you can read them at the follow links:
 
 ### What's New?
 
-New features in *version 0.2.0*:
+New features in *version 0.2.1*:
 
 * SAX Encoding refactoring: new module decompose
 * Time series generator *(experimental)*
@@ -82,7 +82,7 @@ If you use pynuTS in a scientific publication, please cite:
 @misc{pynuTS,
   author =       {Nicola Procopio and Marcello Morchio},
   title =        {pynuTS},
-  version = 	 {0.2.0}
+  version = 	 {0.2.1}
   howpublished = {\url{https://github.com/nickprock/pynuTS/}},
   year =         {2021}
 }
