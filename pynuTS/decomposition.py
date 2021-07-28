@@ -48,13 +48,12 @@ class NaiveSAX(BaseEstimator, TransformerMixin):
         >> ts3_decomposed = np.apply_along_axis(sax.fit_transform, 1, ts3)
         >> print(ts3_decomposed)
         """
-        try:
-            if len(levels)!= (len(bounds) + 1):
-                raise ValueError("Length of levels must be equals at length of bounds plus 1")
+        if len(levels)!= (len(bounds) + 1):
+            raise ValueError("Length of levels must be equals at length of bounds plus 1")
         
-        try:
-            if windows<1:
-                raise ValueError("Windows must be a positive integer")
+       
+        if windows<1:
+            raise ValueError("Windows must be a positive integer")
         
 
         self.windows = windows
@@ -75,19 +74,18 @@ class NaiveSAX(BaseEstimator, TransformerMixin):
             trasformed array. 
         """
 
-        try:
-            if isinstance(X, list):
-                X = np.array(X)
-            elif isinstance(X, Series):
-                X = X.values
-            elif isinstance(X, np.ndarray):
-                pass
-            else:
-                raise TypeError("X must be a numpy.array or a list or a pandas Series")
         
-        try:
-            if X.ndim > 1:
-                raise TypeError("X must be a 1-D numpy.array")
+        if isinstance(X, list):
+            X = np.array(X)
+        elif isinstance(X, Series):
+            X = X.values
+        elif isinstance(X, np.ndarray):
+            pass
+        else:
+            raise TypeError("X must be a numpy.array or a list or a pandas Series")
+
+        if X.ndim > 1:
+            raise TypeError("X must be a 1-D numpy.array")
     
         df_PAA = []
     
