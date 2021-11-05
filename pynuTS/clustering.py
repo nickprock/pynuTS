@@ -64,6 +64,8 @@ class DTWKmeans(BaseEstimator):
             raise ValueError("number of initializations must be at least equal to 1")
         if w < 1:
             raise ValueError("window parameter must be at least equal to 1")
+        if criterion not in ["euclidean", "cosine"]:
+            raise ValueError("DTWKMeans support only two kind of distance 'euclidean' and 'cosine'")
 
         self.num_clust = num_clust
         self.num_iter = num_iter
