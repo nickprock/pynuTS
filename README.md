@@ -30,6 +30,12 @@ The articles are written in italian, you can read them at the follow links:
 
 ### What's New?
 
+New features in *version 0.2.2*:
+
+* changing the names of some hyperparameters in DTWKMeans
+* bug fixing
+* demos update
+
 New features in *version 0.2.1*:
 
 * SAX Encoding refactoring: new module decompose
