@@ -28,9 +28,9 @@ class DTWKmeans(BaseEstimator):
         default 1. Number of different initializations
     w :  int.
         default 1. Window parameter
-    euclidean : bool.
-        default True. If True compute DTW with euclidean distance, else use the cosine similarity.
-    random_seed : None or any  type suitable for random seed initialization (usually int) 
+    criterion : str.
+        default 'euclidean'. DTWKMeans support two kind of distance 'euclidean' and 'cosine'.
+    seed : None or any  type suitable for random seed initialization (usually int) 
         default None. Random seed initialization for reproduceability, not initialized if None
 
     Example
@@ -55,7 +55,7 @@ class DTWKmeans(BaseEstimator):
     >> clts.predict(list_new)
     """
     def __init__(self, num_clust : int, num_iter : int = 1, num_init = 1,
-                       w: int = 1, euclidean: bool = True, random_seed = None):
+                       w: int = 1, criterion: str = 'euclidean', seed = None):
         if num_clust < 1:
             raise ValueError("number of cluster must be at least equal to 1")
         if num_iter < 1:
@@ -64,13 +64,15 @@ class DTWKmeans(BaseEstimator):
             raise ValueError("number of initializations must be at least equal to 1")
         if w < 1:
             raise ValueError("window parameter must be at least equal to 1")
+        if criterion not in ["euclidean", "cosine"]:
+            raise ValueError("DTWKMeans support only two kind of distance 'euclidean' and 'cosine'")
 
         self.num_clust = num_clust
         self.num_iter = num_iter
         self.num_init = num_init
         self.w = w
-        self.criterion = {True : 'euclidean', False : 'cosine'}[euclidean]
-        self.seed = random_seed
+        self.criterion = criterion
+        self.seed = seed
         if not self.seed is None :
             random.seed(self.seed)
     
