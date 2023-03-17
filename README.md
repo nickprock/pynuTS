@@ -8,19 +8,19 @@
 
 <br>
 
-**pynuTS** is a little python library based on my articles pubblished in 2020 on [**IAML**](https://iaml.it/) blog.
+**pynuTS** is a little python library based on my articles pubblished in 2020 on [**IAML**](https://www.linkedin.com/company/iaml/) blog.
 
 The articles are written in italian, you can read them at the follow links:
 
-* [Breve introduzione al Dynamic Time Warping](https://iaml.it/blog/serie-storiche-3-dynamic-time-warping)
+* [Breve introduzione al Dynamic Time Warping](https://nicoprocopio.blogspot.com/2020/06/breve-introduzione-al-dynamic-time.html)
 
-* [Individuare pattern con il SAX encoding](https://iaml.it/blog/serie-storiche-2-sax-encoding)
+* [Individuare pattern con il SAX encoding](https://nicoprocopio.blogspot.com/2020/04/individuare-pattern-col-sax-encoding.html)
 
-* [Trattare i valori mancanti nelle serie storiche](https://iaml.it/blog/serie-storiche-1-dati-mancanti)
+* [Trattare i valori mancanti nelle serie storiche](https://nicoprocopio.blogspot.com/2021/06/trattare-i-valori-mancanti-nelle-serie.html)
 
 <br>
 
-![iaml](https://iaml.it/user/pages/images/IAML_logo_viola.png)
+![iaml](http://lcsl.mit.edu/courses/mlcc/mlcc2019/img/logos/iaml.png)
 
 <br>
 
