@@ -1,0 +1,334 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pynuTS"
+dynamic = ["version"]
+description = "A modern Python library for scalable Time Series analysis with advanced clustering and DTW algorithms"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Nicola Procopio", email = "nico.pro412@gmail.com"}
+]
+maintainers = [
+    {name = "Nicola Procopio", email = "nico.pro412@gmail.com"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research", 
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Distributed Computing",
+]
+keywords = [
+    "time-series",
+    "timeseries", 
+    "time series analysis",
+    "dtw",
+    "dynamic time warping",
+    "fast-dtw",
+    "sax",
+    "symbolic aggregate approximation",
+    "imputation",
+    "missing values",
+    "clustering",
+    "k-means",
+    "ensemble clustering",
+    "parallel computing",
+    "scalable algorithms",
+    "streaming data",
+    "online learning",
+    "machine learning",
+    "data science",
+    "signal processing",
+    "pattern recognition",
+    "performance optimization",
+    "numba",
+    "jit"
+]
+requires-python = ">=3.8"
+dependencies = [
+    "numpy>=1.19.0",
+    "pandas>=1.2.0", 
+    "scikit-learn>=0.24.0",
+    "scipy>=1.6.0",
+    "tqdm>=4.50.0",
+]
+
+[project.optional-dependencies]
+fast = [
+    "numba>=0.53.0",
+    "cython>=0.29.0",
+]
+plotting = [
+    "matplotlib>=3.3.0",
+    "seaborn>=0.11.0", 
+    "plotly>=5.0.0",
+]
+advanced = [
+    "dask>=2021.3.0",
+    "joblib>=1.0.0",
+    "fastdtw>=0.3.4",
+]
+dev = [
+    "pytest>=6.0.0",
+    "pytest-cov>=2.10.0",
+    "black>=21.0.0",
+    "flake8>=3.8.0",
+    "mypy>=0.812",
+    "pre-commit>=2.10.0",
+    "sphinx>=3.5.0",
+    "sphinx-rtd-theme>=0.5.0",
+]
+notebook = [
+    "jupyter>=1.0.0",
+    "ipywidgets>=7.6.0",
+]
+all = [
+    # Fast computation
+    "numba>=0.53.0",
+    "cython>=0.29.0", 
+    "joblib>=1.0.0",
+    # Parallel and distributed computing
+    "dask>=2021.3.0",
+    "psutil>=5.8.0",
+    # Streaming and storage
+    "zarr>=2.8.0",
+    "h5py>=3.2.0",
+    "pyarrow>=3.0.0",
+    # Visualization
+    "matplotlib>=3.3.0",
+    "seaborn>=0.11.0",
+    "plotly>=5.0.0",
+    "bokeh>=2.3.0",
+    # Advanced algorithms
+    "fastdtw>=0.3.4",
+    "tslearn>=0.5.0", 
+    "sktime>=0.10.0",
+    # Development and benchmarking
+    "pytest>=6.0.0",
+    "pytest-cov>=2.10.0",
+    "pytest-xdist>=2.2.0",
+    "pytest-benchmark>=3.4.0",
+    "pytest-timeout>=2.1.0",
+    "black>=21.0.0",
+    "flake8>=3.8.0",
+    "mypy>=0.812",
+    "pre-commit>=2.10.0",
+    "sphinx>=3.5.0",
+    "sphinx-rtd-theme>=0.5.0",
+    "memory-profiler>=0.60.0",
+    "line-profiler>=3.3.0",
+    # Jupyter ecosystem
+    "jupyter>=1.0.0",
+    "ipywidgets>=7.6.0",
+    "jupyterlab>=3.0.0",
+    "ipyparallel>=7.0.0",
+    # Enterprise features
+    "redis>=4.0.0",
+    "sqlalchemy>=1.4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/nickprock/pynuTS"
+Documentation = "https://pynuts.readthedocs.io/"
+Repository = "https://github.com/nickprock/pynuTS.git"
+"Bug Tracker" = "https://github.com/nickprock/pynuTS/issues"
+Blog = "https://iaml.it/blog/"
+
+[tool.setuptools]
+packages = ["pynuTS"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+pynuTS = ["data/*.csv", "data/*.json", "templates/*.html"]
+
+[tool.setuptools_scm]
+write_to = "pynuTS/_version.py"
+
+# Black configuration
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+include = '\.pyi?
+
+# pytest configuration
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["pynuTS"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "setup.py",
+    "pynuTS/_version.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+# MyPy configuration
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "numpy.*",
+    "pandas.*", 
+    "sklearn.*",
+    "scipy.*",
+    "tqdm.*",
+    "numba.*",
+    "joblib.*",
+    "dask.*",
+    "psutil.*",
+    "zarr.*",
+    "h5py.*",
+    "pyarrow.*",
+    "redis.*",
+    "sqlalchemy.*",
+]
+ignore_missing_imports = true
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+  | __pycache__
+)/
+'''
+
+# isort configuration  
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["pynuTS"]
+known_third_party = ["numpy", "pandas", "sklearn", "scipy", "numba", "joblib", "dask"]
+
+# pytest configuration
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["pynuTS"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "setup.py",
+    "pynuTS/_version.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+# MyPy configuration
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "numpy.*",
+    "pandas.*", 
+    "sklearn.*",
+    "scipy.*",
+    "tqdm.*",
+    "numba.*",
+    "joblib.*",
+    "dask.*",
+    "psutil.*",
+    "zarr.*",
+    "h5py.*",
+    "pyarrow.*",
+    "redis.*",
+    "sqlalchemy.*",
+]
+ignore_missing_imports = true

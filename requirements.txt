@@ -1,0 +1,401 @@
+# requirements.txt - Core dependencies
+# Core scientific computing
+numpy>=1.19.0,<2.0.0
+pandas>=1.2.0,<3.0.0
+scipy>=1.6.0,<2.0.0
+
+# Machine learning
+scikit-learn>=0.24.0,<2.0.0
+
+# Progress bars and utilities
+tqdm>=4.50.0,<5.0.0
+
+# Type hints support for older Python versions
+typing-extensions>=3.7.4; python_version<"3.8"
+
+---
+
+# requirements-fast.txt - Performance optimization dependencies
+-r requirements.txt
+
+# JIT compilation for numerical computing
+numba>=0.53.0,<1.0.0
+
+# Compiled extensions
+cython>=0.29.0,<1.0.0
+
+# Parallel computing (essential for scalable clustering)
+joblib>=1.0.0,<2.0.0
+
+# Alternative fast DTW implementation
+fastdtw>=0.3.4
+
+---
+
+# requirements-parallel.txt - Parallel and distributed computing
+-r requirements.txt
+
+# Essential parallel computing
+joblib>=1.0.0,<2.0.0
+
+# Distributed computing
+dask>=2021.3.0,<2024.0.0
+
+# System monitoring and memory management
+psutil>=5.8.0,<6.0.0
+
+# Backport for older Python versions
+concurrent-futures>=3.1.1; python_version<"3.2"
+
+---
+
+# requirements-streaming.txt - Streaming and large data processing
+-r requirements.txt
+-r requirements-parallel.txt
+
+# Efficient array storage and streaming
+zarr>=2.8.0,<3.0.0
+h5py>=3.2.0,<4.0.0
+pyarrow>=3.0.0,<15.0.0
+
+# Distributed computing
+dask>=2021.3.0,<2024.0.0
+
+---
+
+# requirements-advanced.txt - Advanced features
+-r requirements.txt
+-r requirements-fast.txt
+-r requirements-parallel.txt
+
+# Advanced time series libraries
+tslearn>=0.5.0,<1.0.0
+sktime>=0.10.0,<1.0.0
+
+# Memory optimization
+psutil>=5.8.0
+
+# Advanced data structures
+pyarrow>=3.0.0
+
+---
+
+# requirements-plotting.txt - Visualization dependencies  
+-r requirements.txt
+
+# Core plotting
+matplotlib>=3.3.0,<4.0.0
+seaborn>=0.11.0,<1.0.0
+
+# Interactive plotting
+plotly>=5.0.0,<6.0.0
+bokeh>=2.3.0,<4.0.0
+
+# Jupyter integration
+ipywidgets>=7.6.0,<9.0.0
+
+---
+
+# requirements-benchmark.txt - Performance testing and profiling
+-r requirements.txt
+-r requirements-fast.txt
+
+# Memory and performance profiling
+memory-profiler>=0.60.0,<1.0.0
+line-profiler>=3.3.0,<5.0.0
+py-spy>=0.3.0,<1.0.0
+
+# System monitoring
+psutil>=5.8.0,<6.0.0
+
+# Visualization for benchmarks
+matplotlib>=3.3.0,<4.0.0
+seaborn>=0.11.0,<1.0.0
+
+---
+
+# requirements-dev.txt - Development dependencies
+-r requirements.txt
+-r requirements-fast.txt
+-r requirements-parallel.txt
+-r requirements-plotting.txt
+-r requirements-benchmark.txt
+
+# Testing framework with parallel support
+pytest>=6.0.0,<8.0.0
+pytest-cov>=2.10.0,<5.0.0
+pytest-xdist>=2.2.0,<4.0.0  # Parallel testing
+pytest-benchmark>=3.4.0,<5.0.0  # Performance testing
+pytest-timeout>=2.1.0,<3.0.0  # Timeout for long clustering tests
+
+# Code quality
+black>=21.0.0,<24.0.0
+flake8>=3.8.0,<7.0.0
+isort>=5.8.0,<6.0.0
+mypy>=0.812,<2.0.0
+bandit>=1.7.0  # Security linting
+
+# Pre-commit hooks
+pre-commit>=2.10.0,<4.0.0
+
+# Documentation
+sphinx>=3.5.0,<8.0.0
+sphinx-rtd-theme>=0.5.0,<3.0.0
+myst-parser>=0.15.0  # Markdown support in Sphinx
+sphinx-autodoc-typehints>=1.12.0
+
+# Jupyter development
+jupyter>=1.0.0
+notebook>=6.3.0
+jupyterlab>=3.0.0
+ipyparallel>=7.0.0  # Parallel notebook computing
+
+# Package building
+build>=0.7.0
+twine>=3.4.0
+wheel>=0.36.0
+
+---
+
+# requirements-enterprise.txt - Enterprise-grade features
+-r requirements.txt
+-r requirements-fast.txt
+-r requirements-parallel.txt
+-r requirements-streaming.txt
+
+# Caching and database integration
+redis>=4.0.0,<6.0.0
+sqlalchemy>=1.4.0,<3.0.0
+
+# Enhanced parallel computing
+dask>=2021.3.0,<2024.0.0
+distributed>=2021.3.0,<2024.0.0
+
+# Production monitoring
+psutil>=5.8.0,<6.0.0
+
+---
+
+# requirements-min.txt - Minimal dependencies for CI/testing
+numpy==1.19.0
+pandas==1.2.0  
+scipy==1.6.0
+scikit-learn==0.24.0
+tqdm==4.50.0
+joblib==1.0.0  # Essential for parallel clustering
+
+---
+
+# requirements-docs.txt - Documentation building
+-r requirements.txt
+
+# Documentation tools
+sphinx>=3.5.0,<8.0.0
+sphinx-rtd-theme>=0.5.0,<3.0.0
+myst-parser>=0.15.0
+sphinx-autodoc-typehints>=1.12.0
+sphinx-gallery>=0.9.0
+numpydoc>=1.1.0
+
+# For generating example plots in docs
+matplotlib>=3.3.0
+seaborn>=0.11.0
+
+# For documenting clustering algorithms
+joblib>=1.0.0
+
+---
+
+# requirements-notebook.txt - Jupyter notebook environment
+-r requirements.txt
+-r requirements-plotting.txt
+-r requirements-fast.txt
+
+# Jupyter ecosystem
+jupyter>=1.0.0
+jupyterlab>=3.0.0
+notebook>=6.3.0
+ipywidgets>=7.6.0
+ipyparallel>=7.0.0  # For parallel clustering in notebooks
+
+# Enhanced notebook experience  
+jupyterlab-git>=0.30.0
+jupyterlab-code-formatter>=1.4.0
+nbextensions>=0.5.0
+
+---
+
+# .github/requirements-ci.txt - Optimized for CI/CD
+-r requirements-min.txt
+
+# Testing essentials with parallel support
+pytest>=6.0.0
+pytest-cov>=2.10.0
+pytest-xdist>=2.2.0  # Parallel testing
+pytest-benchmark>=3.4.0  # Benchmark clustering algorithms
+
+# Code quality (minimal versions)
+black>=21.0.0
+flake8>=3.8.0
+mypy>=0.812
+
+# Coverage reporting
+codec# requirements.txt - Core dependencies
+# Core scientific computing
+numpy>=1.19.0,<2.0.0
+pandas>=1.2.0,<3.0.0
+scipy>=1.6.0,<2.0.0
+
+# Machine learning
+scikit-learn>=0.24.0,<2.0.0
+
+# Progress bars and utilities
+tqdm>=4.50.0,<5.0.0
+
+# Type hints support for older Python versions
+typing-extensions>=3.7.4; python_version<"3.8"
+
+---
+
+# requirements-fast.txt - Performance optimization dependencies
+-r requirements.txt
+
+# JIT compilation for numerical computing
+numba>=0.53.0,<1.0.0
+
+# Compiled extensions
+cython>=0.29.0,<1.0.0
+
+# Alternative fast DTW implementation
+fastdtw>=0.3.4
+
+---
+
+# requirements-advanced.txt - Advanced features
+-r requirements.txt
+
+# Parallel computing
+dask>=2021.3.0,<2024.0.0
+joblib>=1.0.0,<2.0.0
+
+# Memory optimization
+psutil>=5.8.0
+
+# Advanced data structures
+pyarrow>=3.0.0
+
+---
+
+# requirements-plotting.txt - Visualization dependencies  
+-r requirements.txt
+
+# Core plotting
+matplotlib>=3.3.0,<4.0.0
+seaborn>=0.11.0,<1.0.0
+
+# Interactive plotting
+plotly>=5.0.0,<6.0.0
+bokeh>=2.3.0,<3.0.0
+
+# Jupyter integration
+ipywidgets>=7.6.0,<9.0.0
+
+---
+
+# requirements-dev.txt - Development dependencies
+-r requirements.txt
+-r requirements-fast.txt
+-r requirements-plotting.txt
+
+# Testing
+pytest>=6.0.0,<8.0.0
+pytest-cov>=2.10.0,<5.0.0
+pytest-xdist>=2.2.0  # Parallel testing
+pytest-benchmark>=3.4.0  # Performance testing
+
+# Code quality
+black>=21.0.0,<24.0.0
+flake8>=3.8.0,<7.0.0
+isort>=5.8.0,<6.0.0
+mypy>=0.812,<2.0.0
+bandit>=1.7.0  # Security linting
+
+# Pre-commit hooks
+pre-commit>=2.10.0,<4.0.0
+
+# Documentation
+sphinx>=3.5.0,<8.0.0
+sphinx-rtd-theme>=0.5.0,<3.0.0
+myst-parser>=0.15.0  # Markdown support in Sphinx
+sphinx-autodoc-typehints>=1.12.0
+
+# Jupyter development
+jupyter>=1.0.0
+notebook>=6.3.0
+jupyterlab>=3.0.0
+
+# Package building
+build>=0.7.0
+twine>=3.4.0
+wheel>=0.36.0
+
+---
+
+# requirements-min.txt - Minimal dependencies for CI/testing
+numpy==1.19.0
+pandas==1.2.0  
+scipy==1.6.0
+scikit-learn==0.24.0
+tqdm==4.50.0
+
+---
+
+# requirements-docs.txt - Documentation building
+-r requirements.txt
+
+# Documentation tools
+sphinx>=3.5.0,<8.0.0
+sphinx-rtd-theme>=0.5.0,<3.0.0
+myst-parser>=0.15.0
+sphinx-autodoc-typehints>=1.12.0
+sphinx-gallery>=0.9.0
+numpydoc>=1.1.0
+
+# For generating example plots in docs
+matplotlib>=3.3.0
+seaborn>=0.11.0
+
+---
+
+# requirements-notebook.txt - Jupyter notebook environment
+-r requirements.txt
+-r requirements-plotting.txt
+
+# Jupyter ecosystem
+jupyter>=1.0.0
+jupyterlab>=3.0.0
+notebook>=6.3.0
+ipywidgets>=7.6.0
+
+# Enhanced notebook experience  
+jupyterlab-git>=0.30.0
+jupyterlab-code-formatter>=1.4.0
+nbextensions>=0.5.0
+
+---
+
+# .github/requirements-ci.txt - Optimized for CI/CD
+-r requirements-min.txt
+
+# Testing essentials
+pytest>=6.0.0
+pytest-cov>=2.10.0
+pytest-xdist>=2.2.0
+
+# Code quality (minimal versions)
+black>=21.0.0
+flake8>=3.8.0
+mypy>=0.812
+
+# Coverage reporting
+codecov>=2.1.0
