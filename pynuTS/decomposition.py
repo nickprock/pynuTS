@@ -62,22 +62,21 @@ class NaiveSAX(BaseEstimator, TransformerMixin):
     """
     
     def __init__(self, 
-                 levels: List[str] = None,
-                 bounds: List[float] = None, 
-                 windows: int = 2,
-                 quantile: bool = True,
-                 overlap: bool = False,
-                 min_window_size: int = 1,
-                 cache_quantiles: bool = True):
+                levels: List[str] = None,
+                bounds: List[float] = None, 
+                windows: int = 2,
+                quantile: bool = True,
+                overlap: bool = False,
+                min_window_size: int = 1,
+                cache_quantiles: bool = True):
         
         # Set defaults
         if levels is None:
             levels = ["A", "B", "C"]
         if bounds is None:
             bounds = [0.25, 0.75]
-            
-        self._validate_parameters(levels, bounds, windows, min_window_size)
-        
+
+        # Assign FIRST
         self.levels = levels
         self.bounds = np.array(bounds)
         self.windows = windows
@@ -85,10 +84,14 @@ class NaiveSAX(BaseEstimator, TransformerMixin):
         self.overlap = overlap
         self.min_window_size = min_window_size
         self.cache_quantiles = cache_quantiles
-        
+
         # Internal state
         self._cached_quantiles = {}
         self._is_fitted = False
+
+        # THEN validate
+        self._validate_parameters(self.levels, self.bounds, self.windows, self.min_window_size)
+
         
     def _validate_parameters(self, levels: List[str], bounds: List[float], 
                            windows: int, min_window_size: int) -> None:

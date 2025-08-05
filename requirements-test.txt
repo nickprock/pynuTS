@@ -1,0 +1,13 @@
+pytest>=6.0.0
+pytest-cov>=2.10.0
+pytest-xdist>=2.2.0
+pytest-benchmark>=3.4.0
+pytest-timeout>=2.1.0
+black>=21.0.0
+flake8>=3.8.0
+mypy>=0.812
+pre-commit>=2.10.0
+sphinx>=3.5.0
+sphinx-rtd-theme>=0.5.0
+memory-profiler>=0.60.0
+line-profiler>=3.3.0
