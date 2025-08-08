@@ -11,7 +11,7 @@ Created on Thu Jun 18 2020
 import numpy as np
 from typing import Tuple, Optional, Union, Callable, List
 import warnings
-from scipy.spatial.distance import euclidean, manhattan, minkowski
+from scipy.spatial.distance import euclidean, cityblock, minkowski
 from numba import jit, prange
 import sys
 

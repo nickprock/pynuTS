@@ -170,7 +170,7 @@ class ScalableDTWKMeans(BaseEstimator, ClusterMixin):
             raise ValueError("window_size must be at least 1")
         if init_method not in ['random', 'k-means++', 'dtw++']:
             raise ValueError(f"Unknown init_method: {init_method}")
-        if distance_metric not in ['euclidean', 'manhattan', 'chebyshev']:
+        if distance_metric not in ['euclidean', 'cityblock', 'chebyshev']:
             raise ValueError(f"Unsupported distance_metric: {distance_metric}")
     
     def _prepare_data(self, X: List[Union[np.ndarray, pd.Series]]) -> List[np.ndarray]:

@@ -220,14 +220,14 @@ class NaiveSAX(BaseEstimator, TransformerMixin):
         Much faster than the original nested loop approach.
         """
         boundaries = self._compute_boundaries(paa_values)
+    
+        # Inizializza con il primo livello
+        result = np.full(len(paa_values), self.levels[0], dtype=object)
         
-        # Initialize result array
-        result = np.full(len(paa_values), self.levels[-1], dtype=object)
-        
-        # Vectorized binning
+        # Assegna livelli in ordine crescente
         for i, boundary in enumerate(boundaries):
-            mask = paa_values < boundary
-            result[mask] = self.levels[i]
+            mask = paa_values >= boundary
+            result[mask] = self.levels[i + 1]
         
         return result
     
