@@ -1,12 +1,12 @@
 # embryo of unit test suite for pynuTS clustering
 
-import pytest
-from pynuTS.clustering import DTWKmeans
-import numpy as np
-import pandas as pd
 
-from demos.ts_gen import make_slopes_dataset,make_flat_dataset
-from demos.ts_utils import lists_of_series_are_equal
+from pynuTS.datasets import make_flat_dataset
+
+
+def lists_of_series_are_equal(list_of_series_1,list_of_series_2):
+    """Equality test for list of series"""
+    return all([(s1==s2).all() for s1,s2 in zip(list_of_series_1,list_of_series_2)])
 
 
 class TestFlat(object):

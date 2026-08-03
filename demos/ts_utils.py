@@ -1,6 +1,5 @@
 # ### Utilities for the TS demos
 
-import pandas as pd
 
 def get_clustered_list(list_of_series,clusters_dict):
     """Return a list of pandas series with series names adjusted according to the given clusters dictionary

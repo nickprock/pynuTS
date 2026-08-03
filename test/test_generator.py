@@ -2,8 +2,7 @@
 
 import pytest
 # from demos.generator_old import AR,MA,ARMA,ARIMA
-from demos.generator import AR,MA,ARMA,ARIMA,SARIMA
-import numpy as np
+from pynuTS.generator import AR,MA,ARMA,ARIMA,SARIMA
 import pandas as pd
 import random
 
