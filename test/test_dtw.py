@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from pynuTS.dtw import dtw_distance, dtw_matrix, local_cost_matrix
+from pynuTS.dtw import dtw_distance, dtw_matrix, dtw_path, local_cost_matrix
 
 
 class TestProperties:
@@ -111,6 +111,78 @@ class TestMultivariate:
         x = np.array([[0.0, 0.0]])
         y = np.array([[1.0, 1.0]])
         assert np.isfinite(local_cost_matrix(x, y, criterion='cosine')).all()
+
+
+class TestPath:
+    def test_documented_example(self):
+        dist, path = dtw_path(np.array([1.0, 2.0, 3.0]), np.array([1.0, 3.0]))
+        assert path == [(0, 0), (1, 0), (2, 1)]
+        assert dist == pytest.approx(1.0)
+
+    def test_ties_are_resolved_consistently(self):
+        """[(0,0),(1,0),(2,1)] and [(0,0),(1,1),(2,1)] both cost 1.0 here, so
+        the test above pins down a choice, not a mathematical truth"""
+        x, y = np.array([1.0, 2.0, 3.0]), np.array([1.0, 3.0])
+        cost = local_cost_matrix(x, y)
+        alternative = [(0, 0), (1, 1), (2, 1)]
+        dist, _ = dtw_path(x, y)
+        assert sum(cost[i, j] for i, j in alternative) == pytest.approx(dist)
+
+    @pytest.mark.parametrize("seed", range(10))
+    def test_path_is_a_valid_alignment(self, seed):
+        rng = np.random.default_rng(seed)
+        n, m = int(rng.integers(2, 25)), int(rng.integers(2, 25))
+        x, y = rng.normal(size=n), rng.normal(size=m)
+
+        dist, path = dtw_path(x, y)
+
+        assert path[0] == (0, 0)
+        assert path[-1] == (n - 1, m - 1)
+        # every element of both series takes part in the alignment
+        assert sorted({i for i, _ in path}) == list(range(n))
+        assert sorted({j for _, j in path}) == list(range(m))
+        # steps are monotone and advance by at most one on each axis
+        for (a, b), (c, d) in zip(path, path[1:]):
+            assert 0 <= c - a <= 1 and 0 <= d - b <= 1 and (c - a) + (d - b) >= 1
+
+    @pytest.mark.parametrize("seed", range(10))
+    def test_path_cost_equals_the_distance(self, seed):
+        rng = np.random.default_rng(50 + seed)
+        x, y = rng.normal(size=int(rng.integers(2, 20))), rng.normal(size=int(rng.integers(2, 20)))
+        dist, path = dtw_path(x, y)
+        cost = local_cost_matrix(x, y)
+        assert sum(cost[i, j] for i, j in path) == pytest.approx(dist)
+
+    def test_path_stays_inside_the_band(self):
+        dist, path = dtw_path(np.arange(20.0), np.arange(20.0) + 0.5, w=3)
+        assert all(abs(i - j) <= 3 for i, j in path)
+
+    def test_identical_series_align_on_the_diagonal(self):
+        x = np.array([1.0, 4.0, 2.0, 7.0])
+        _, path = dtw_path(x, x)
+        assert path == [(0, 0), (1, 1), (2, 2), (3, 3)]
+
+
+class TestSquaredEuclidean:
+    def test_is_a_supported_criterion(self):
+        assert dtw_distance(np.arange(5.0), np.arange(5.0) + 1, criterion='sqeuclidean') > 0
+
+    def test_zero_on_identical_series(self):
+        x = np.array([1.0, 7.0, 3.0])
+        assert dtw_distance(x, x, criterion='sqeuclidean') == pytest.approx(0.0)
+
+    def test_squared_distance_is_the_sum_of_squared_local_costs(self):
+        """this identity is what makes the DBA descent argument work"""
+        rng = np.random.default_rng(7)
+        x, y = rng.normal(size=12), rng.normal(size=17)
+        dist, path = dtw_path(x, y, criterion='sqeuclidean')
+        assert dist ** 2 == pytest.approx(sum((x[i] - y[j]) ** 2 for i, j in path))
+
+    def test_euclidean_is_left_untouched(self):
+        rng = np.random.default_rng(8)
+        x, y = rng.normal(size=10), rng.normal(size=13)
+        dist, path = dtw_path(x, y, criterion='euclidean')
+        assert dist == pytest.approx(sum(abs(x[i] - y[j]) for i, j in path))
 
 
 class TestDeprecatedShim:

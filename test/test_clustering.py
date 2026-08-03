@@ -91,7 +91,7 @@ class TestDTWKmeans_init(object):
     def test_DTWKmeans_init_random_seed(self, seed):
         assert DTWKmeans(num_clust=5, seed=seed)
 
-    @pytest.mark.parametrize("criterion", ['euclidean', 'cosine'])
+    @pytest.mark.parametrize("criterion", ['sqeuclidean', 'euclidean', 'cosine'])
     def test_DTWKmeans_init_criterion(self, criterion):
         clts = DTWKmeans(num_clust=5, criterion=criterion)
         assert clts.criterion == criterion
@@ -99,6 +99,23 @@ class TestDTWKmeans_init(object):
     def test_DTWKmeans_init_rejects_unknown_criterion(self):
         with pytest.raises(ValueError):
             DTWKmeans(num_clust=5, criterion='manhattan')
+
+    @pytest.mark.parametrize("averaging", ['dba', 'mean'])
+    def test_DTWKmeans_init_averaging(self, averaging):
+        assert DTWKmeans(num_clust=5, averaging=averaging).averaging == averaging
+
+    def test_DTWKmeans_init_rejects_unknown_averaging(self):
+        with pytest.raises(ValueError):
+            DTWKmeans(num_clust=5, averaging='median')
+
+    def test_DTWKmeans_init_rejects_bad_dba_iter(self):
+        with pytest.raises(ValueError):
+            DTWKmeans(num_clust=5, dba_iter=0)
+
+    def test_DTWKmeans_defaults_to_dba(self):
+        clts = DTWKmeans(num_clust=2)
+        assert clts.averaging == 'dba'
+        assert clts.criterion == 'sqeuclidean'
 
     def test_DTWKmeans_is_a_sklearn_estimator(self):
         """get_params/set_params must round-trip, as sklearn's clone relies on them"""
@@ -186,6 +203,59 @@ class TestDTWKmeans_features(object):
     def test_DTWKmeans_more_clusters_than_series_raises(self):
         with pytest.raises(ValueError):
             DTWKmeans(num_clust=5).fit([pd.Series([1.0, 2.0])])
+
+
+class TestDTWKmeans_averaging:
+    def test_dba_and_mean_both_run_end_to_end(self):
+        data = flat_dataset(random_seed=101)
+        for averaging in ('dba', 'mean'):
+            clts = DTWKmeans(num_clust=3, num_iter=5, averaging=averaging, seed=7).fit(data)
+            assert len(clts.cluster_centers_) == 3
+            assert clts.inertia_ >= 0
+
+    def test_dba_recovers_a_shape_the_mean_destroys(self):
+        """two clusters of shifted peaks: the element-wise mean flattens the
+        peak into something no member ever looked like, DBA keeps it"""
+        base = np.exp(-np.linspace(-3, 3, 60) ** 2)
+        group_a = [pd.Series(np.roll(base, k)) for k in (-9, -5, 0, 5, 9)]
+        group_b = [pd.Series(np.roll(base, k) + 5.0) for k in (-9, -5, 0, 5, 9)]
+        data = group_a + group_b
+
+        with_dba = DTWKmeans(num_clust=2, num_iter=5, averaging='dba', seed=3).fit(data)
+        with_mean = DTWKmeans(num_clust=2, num_iter=5, averaging='mean', seed=3).fit(data)
+
+        peak_height = lambda c: np.asarray(c).max() - np.asarray(c).min()
+        assert min(peak_height(c) for c in with_dba.cluster_centers_) > \
+               max(peak_height(c) for c in with_mean.cluster_centers_)
+
+    def test_dba_reaches_a_lower_inertia_on_warped_data(self):
+        base = np.exp(-np.linspace(-3, 3, 60) ** 2)
+        data = [pd.Series(np.roll(base, k)) for k in (-9, -5, 0, 5, 9)]
+
+        with_dba = DTWKmeans(num_clust=1, num_iter=5, averaging='dba', seed=3).fit(data)
+        with_mean = DTWKmeans(num_clust=1, num_iter=5, averaging='mean', seed=3).fit(data)
+
+        assert with_dba.inertia_ < with_mean.inertia_
+
+    def test_dba_centroid_keeps_the_length_of_its_seed(self):
+        data = make_flat_dataset([-1.0, 1.0], 6, lengths=[7, 13, 20], random_seed=4)
+        clts = DTWKmeans(num_clust=2, num_iter=3, seed=9).fit(data)
+        lengths = {len(np.asarray(c)) for c in clts.cluster_centers_}
+        assert lengths.issubset({7, 13, 20})
+
+    def test_dba_handles_series_of_different_lengths(self):
+        data = make_flat_dataset([-1.0, 1.0], 6, lengths=[5, 8, 11], random_seed=3)
+        clts = DTWKmeans(num_clust=2, num_iter=3, seed=5).fit(data)
+        for centroid in clts.cluster_centers_:
+            assert not np.isnan(np.asarray(centroid)).any()
+
+    def test_dba_is_reproduceable(self):
+        data = flat_dataset(random_seed=101)
+        a = DTWKmeans(num_clust=3, num_iter=4, seed=31).fit(data)
+        b = DTWKmeans(num_clust=3, num_iter=4, seed=31).fit(data)
+        assert a.inertia_ == pytest.approx(b.inertia_)
+        for ca, cb in zip(a.cluster_centers_, b.cluster_centers_):
+            assert np.allclose(ca, cb)
 
 
 def flat_dataset(random_seed=101):

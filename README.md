@@ -47,21 +47,25 @@ that is a recommendation, not a disclaimer:
 
 ### Known approximations
 
-Two of the algorithms are deliberate simplifications, and it is worth being
-explicit about them:
-
-* **`DTWKmeans` averages its centroids with the Euclidean mean**, not with a DTW
-  barycenter. The methodologically correct centroid is DBA (Petitjean et al.,
-  2011) or the soft-DTW barycenter (Cuturi & Blondel, 2017). With series of
-  different lengths the current mean is computed position by position, ignoring
-  the missing tails.
 * **`NaiveSAX` uses empirical quantiles**, not the equiprobable gaussian
   breakpoints of the original paper, and does not z-normalize. It therefore does
   **not** give the MINDIST lower-bounding guarantee, so it cannot be used for
   indexing. Encodings are comparable across series only if you `fit` once and
   `transform` many, see below.
+* **`DTWKmeans` is plain numpy**, so it is fine for hundreds of short series and
+  not for hundreds of thousands. There is no JIT, no pruning and no GPU.
 
 ## What's New?
+
+New features in *version 0.4.0*:
+
+* **`DTWKmeans` now averages its centroids with DBA** (DTW Barycenter Averaging,
+  Petitjean et al. 2011) instead of the element-wise mean, which was never a
+  valid centroid under DTW. `averaging='mean'` keeps the old behaviour
+* new module `pynuTS.barycenter` exposing `dba` and `medoid_index`
+* new `pynuTS.dtw.dtw_path`, the optimal alignment between two series
+* new `'sqeuclidean'` criterion, the one for which the DBA descent is provable,
+  and now the default for `DTWKmeans`
 
 New features in *version 0.3.0*:
 
@@ -96,6 +100,18 @@ New features in *version 0.3.0*:
 * `DTWKmeans` could silently drop a series from every cluster, produced `NaN`
   centroids on series of different lengths, and reseeded the global `random`
   module as a side effect of the constructor
+
+### Breaking changes in 0.4.0
+
+* `DTWKmeans` defaults changed from `averaging='mean'` to `averaging='dba'` and
+  from `criterion='euclidean'` to `criterion='sqeuclidean'`. Clusterings and
+  `inertia_` values will differ from 0.3.0. Pass
+  `DTWKmeans(..., averaging='mean', criterion='euclidean')` for the old
+  behaviour. The two defaults move together on purpose: DBA only provably
+  descends when the warping path is optimal for the same squared error its
+  update step minimizes
+* DBA costs roughly 1.5x to 2x the time of the plain mean, and reaches a lower
+  inertia in exchange
 
 ### Breaking changes in 0.3.0
 
@@ -166,6 +182,26 @@ list_new = [pd.Series(3.5 * np.random.randn(100) + 2)]
 print(clts.predict(list_new))
 ```
 
+### DTW Barycenter Averaging
+
+Averaging time series with the arithmetic mean assumes that points sharing an
+index correspond to each other. Under DTW they do not, and that assumption is
+what smears a shifted peak into a shape none of the inputs ever had:
+
+```python
+import numpy as np
+from pynuTS.barycenter import dba
+
+peak = np.exp(-np.linspace(-3, 3, 60) ** 2)
+shifted = [np.roll(peak, k) for k in (-9, -4, 0, 4, 9)]
+
+print(peak.max())                      # 0.997  the real amplitude
+print(np.mean(shifted, axis=0).max())  # 0.711  the mean flattens it
+print(dba(shifted).max())              # 0.997  DBA keeps it
+```
+
+`DTWKmeans` uses `dba` for its centroids by default.
+
 ### SAX Encoding
 
 ```python
@@ -219,10 +255,11 @@ series = make_flat_dataset([-1.0, 0.0, 1.0], samples=10, lengths=[50], random_se
 ```
 ├── pynuTS/                # Main library directory
 │   ├── __init__.py       # Public API
+│   ├── barycenter.py     # DTW Barycenter Averaging (DBA)
 │   ├── clustering.py     # Time series clustering using DTW
 │   ├── datasets.py       # Labelled toy datasets
 │   ├── decomposition.py  # Time series decomposition using SAX
-│   ├── dtw.py            # Dynamic Time Warping engine
+│   ├── dtw.py            # Dynamic Time Warping engine (distance and path)
 │   ├── generator.py      # AR, MA, ARMA, ARIMA, SARIMA generators
 │   ├── impute.py         # Time series imputation
 │   ├── naive_dtw.py      # Deprecated wrapper over pynuTS.dtw
@@ -245,7 +282,7 @@ If you use pynuTS in a scientific publication, please cite:
 @misc{pynuTS,
   author =       {Nicola Procopio and Marcello Morchio},
   title =        {pynuTS},
-  version = 	 {0.3.0},
+  version = 	 {0.4.0},
   howpublished = {\url{https://github.com/nickprock/pynuTS/}},
   year =         {2021}
 }

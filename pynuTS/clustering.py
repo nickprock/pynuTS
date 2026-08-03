@@ -14,6 +14,7 @@ import numpy as np
 from sklearn.base import BaseEstimator
 from tqdm import tqdm
 
+from .barycenter import dba
 from .dtw import dtw_distance
 
 
@@ -23,7 +24,7 @@ def _as_array(ts):
     return np.asarray(values, dtype=float)
 
 
-def _barycenter(members):
+def _euclidean_mean(members):
     """
     Average a group of time series element-wise.
 
@@ -31,10 +32,9 @@ def _barycenter(members):
     position by position, so that series of different lengths - the very reason
     one uses DTW in the first place - do not silently collapse into NaN.
 
-    Note that this is the plain Euclidean mean, *not* a DTW barycenter: the
-    methodologically correct centroid for DTW k-means is DBA (Petitjean et al.,
-    2011) or the soft-DTW barycenter (Cuturi & Blondel, 2017). This is a known
-    approximation, see the README.
+    This is the plain Euclidean mean, which assumes that points sharing an index
+    correspond to each other. Under DTW they do not, which is why
+    :func:`pynuTS.barycenter.dba` is the default in :class:`DTWKmeans`.
 
     Parameters
     -----------------------
@@ -68,9 +68,18 @@ class DTWKmeans(BaseEstimator):
         default 1. Window parameter, the half-width of the Sakoe-Chiba band
         constraining the warping path.
     criterion : str.
-        default 'euclidean'. DTWKMeans support two kind of distance 'euclidean' and 'cosine'.
+        default 'sqeuclidean'. One of 'sqeuclidean', 'euclidean' or 'cosine'.
+        'sqeuclidean' is the default because it is the one that makes the
+        barycenter step a proven descent, see :func:`pynuTS.barycenter.dba`.
         Note that 'cosine' is only meaningful on multivariate series: on
         univariate ones it degenerates to a sign comparison.
+    averaging : str.
+        default 'dba'. How the centroid of a cluster is computed, either 'dba'
+        (DTW Barycenter Averaging, Petitjean et al. 2011) or 'mean' (the plain
+        element-wise mean, faster but not a DTW barycenter).
+    dba_iter : int.
+        default 10. Maximum refinement passes of DBA per centroid update,
+        ignored when averaging is 'mean'.
     seed : None or any  type suitable for random seed initialization (usually int)
         default None. Random seed initialization for reproduceability, not initialized if None
 
@@ -106,7 +115,8 @@ class DTWKmeans(BaseEstimator):
     >> clts.predict(list_new)
     """
     def __init__(self, num_clust : int, num_iter : int = 1, num_init = 1,
-                       w: int = 1, criterion: str = 'euclidean', seed = None):
+                       w: int = 1, criterion: str = 'sqeuclidean',
+                       averaging: str = 'dba', dba_iter: int = 10, seed = None):
         if num_clust < 1:
             raise ValueError("number of cluster must be at least equal to 1")
         if num_iter < 1:
@@ -115,14 +125,20 @@ class DTWKmeans(BaseEstimator):
             raise ValueError("number of initializations must be at least equal to 1")
         if w < 1:
             raise ValueError("window parameter must be at least equal to 1")
-        if criterion not in ["euclidean", "cosine"]:
-            raise ValueError("DTWKMeans support only two kind of distance 'euclidean' and 'cosine'")
+        if criterion not in ["sqeuclidean", "euclidean", "cosine"]:
+            raise ValueError("DTWKMeans support only 'sqeuclidean', 'euclidean' and 'cosine'")
+        if averaging not in ["dba", "mean"]:
+            raise ValueError("averaging must be either 'dba' or 'mean'")
+        if dba_iter < 1:
+            raise ValueError("dba_iter must be at least equal to 1")
 
         self.num_clust = num_clust
         self.num_iter = num_iter
         self.num_init = num_init
         self.w = w
         self.criterion = criterion
+        self.averaging = averaging
+        self.dba_iter = dba_iter
         self.seed = seed
 
     def _distance(self, ts1, ts2):
@@ -211,9 +227,21 @@ class DTWKmeans(BaseEstimator):
         new_centroids = list(centroids)
         for key, members in assignments.items():
             if len(members) > 0:
-                new_centroids[key] = _barycenter([data[k] for k in members])
+                new_centroids[key] = self._update_centroid([data[k] for k in members],
+                                                           centroids[key])
 
         return assignments, new_centroids
+
+    def _update_centroid(self, members, previous):
+        """Recompute the centroid of a cluster from its members.
+
+        DBA is warm started from the previous centroid, which also keeps the
+        centroid length stable across iterations.
+        """
+        if self.averaging == 'mean':
+            return _euclidean_mean(members)
+        return dba(members, init=previous, max_iter=self.dba_iter,
+                   w=self.w, criterion=self.criterion)
 
     def _inertia(self, data: list):
         """

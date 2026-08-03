@@ -13,9 +13,9 @@ installable on Python 3.12+, and supersedes the old `pynuTS.naive_dtw`.
 
 import numpy as np
 
-__all__ = ["dtw_distance", "dtw_matrix", "local_cost_matrix"]
+__all__ = ["dtw_distance", "dtw_matrix", "dtw_path", "local_cost_matrix"]
 
-_CRITERIA = ("euclidean", "cosine")
+_CRITERIA = ("euclidean", "sqeuclidean", "cosine")
 
 
 def _as_2d(ts):
@@ -37,7 +37,7 @@ def local_cost_matrix(ts1, ts2, criterion: str = "euclidean"):
     ts1, ts2 : array-like
         1-D (univariate) or 2-D of shape (n_timesteps, n_features) (multivariate).
     criterion : str
-        default 'euclidean'. Either 'euclidean' or 'cosine'.
+        default 'euclidean'. One of 'euclidean', 'sqeuclidean' or 'cosine'.
 
     Returns
     -----------------------
@@ -50,9 +50,10 @@ def local_cost_matrix(ts1, ts2, criterion: str = "euclidean"):
     if x.shape[1] != y.shape[1]:
         raise ValueError("the two series must have the same number of features, got %d and %d" % (x.shape[1], y.shape[1]))
 
-    if criterion == "euclidean":
+    if criterion in ("euclidean", "sqeuclidean"):
         # broadcasting over the feature axis, then L2 norm
-        return np.sqrt(((x[:, None, :] - y[None, :, :]) ** 2).sum(axis=-1))
+        squared = ((x[:, None, :] - y[None, :, :]) ** 2).sum(axis=-1)
+        return squared if criterion == "sqeuclidean" else np.sqrt(squared)
 
     # cosine: 1 - similarity. Note that on univariate series every point is a
     # 1-dimensional vector, so the result degenerates to 0.0 (same sign) or
@@ -82,7 +83,11 @@ def dtw_matrix(ts1, ts2, w: int = None, criterion: str = "euclidean"):
         abs(len(ts1) - len(ts2)) when needed, otherwise no path would exist.
         None means no constraint.
     criterion : str
-        default 'euclidean'. Either 'euclidean' or 'cosine'.
+        default 'euclidean'. One of 'euclidean', 'sqeuclidean' or 'cosine'.
+        With 'sqeuclidean' the local costs are squared before being accumulated
+        and the square root is taken at the very end, so that ``dist ** 2`` is
+        the sum of the squared local costs along the path. That is the quantity
+        DTW barycenter averaging minimizes, see :mod:`pynuTS.barycenter`.
 
     Returns
     -----------------------
@@ -90,7 +95,9 @@ def dtw_matrix(ts1, ts2, w: int = None, criterion: str = "euclidean"):
         The distance between the time series.
     DTW : 2D numpy array of shape (len(ts1) + 1, len(ts2) + 1)
         Accumulated cost matrix. Cells outside the band hold np.inf.
-        DTW[0, 0] is 0.0 and DTW[-1, -1] is the returned distance.
+        DTW[0, 0] is 0.0 and DTW[-1, -1] is the accumulated cost, which equals
+        the returned distance except for 'sqeuclidean', where the distance is
+        its square root.
 
     Example
     -----------------------
@@ -135,7 +142,63 @@ def dtw_matrix(ts1, ts2, w: int = None, criterion: str = "euclidean"):
         for offset, j in enumerate(range(lo, hi + 1)):
             row[j] = cost_i[j - 1] + min(from_prev_row[offset], row[j - 1])
 
-    return DTW[n, m], DTW
+    # the square root is monotone, so it does not change which path is optimal:
+    # it only brings the result back into the units of the input
+    distance = np.sqrt(DTW[n, m]) if criterion == "sqeuclidean" else DTW[n, m]
+    return distance, DTW
+
+
+def dtw_path(ts1, ts2, w: int = None, criterion: str = "euclidean"):
+    """
+    Calculates the optimal warping path aligning two time series.
+
+    The path is what tells you *which* element of ts1 corresponds to *which*
+    element of ts2, and it is the ingredient DTW barycenter averaging needs.
+
+    Parameters
+    -----------------------
+    ts1, ts2 : array-like
+        1-D (univariate) or 2-D of shape (n_timesteps, n_features) (multivariate).
+    w : int or None
+        default None. Half-width of the Sakoe-Chiba band, see :func:`dtw_matrix`.
+    criterion : str
+        default 'euclidean'. Either 'euclidean' or 'cosine'.
+
+    Returns
+    -----------------------
+    dist : float.
+        The distance between the time series.
+    path : list of (int, int)
+        Pairs of aligned indexes, from (0, 0) to (len(ts1) - 1, len(ts2) - 1).
+        Every index of both series appears at least once.
+
+    Example
+    -----------------------
+    >> import numpy as np
+    >> from pynuTS.dtw import dtw_path
+    >> dist, path = dtw_path(np.array([1., 2., 3.]), np.array([1., 3.]))
+    >> print(dist, path)
+    1.0 [(0, 0), (1, 0), (2, 1)]
+
+    Several alignments can share the optimal cost, as above: which one comes
+    back is deterministic but arbitrary among the equally good ones.
+    """
+    dist, DTW = dtw_matrix(ts1, ts2, w=w, criterion=criterion)
+
+    # walk back from the last cell, always stepping onto the cheapest
+    # predecessor. Cells outside the band hold inf, so the path cannot leave it
+    path = []
+    i, j = DTW.shape[0] - 1, DTW.shape[1] - 1
+    while i > 0 and j > 0:
+        path.append((i - 1, j - 1))
+        # diagonal first, so that it wins ties: it is the step that consumes
+        # one element from each series and keeps the alignment compact
+        candidates = ((DTW[i - 1, j - 1], i - 1, j - 1),
+                      (DTW[i - 1, j], i - 1, j),
+                      (DTW[i, j - 1], i, j - 1))
+        _, i, j = min(candidates, key=lambda c: c[0])
+    path.reverse()
+    return dist, path
 
 
 def dtw_distance(ts1, ts2, w: int = None, criterion: str = "euclidean") -> float:
