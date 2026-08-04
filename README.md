@@ -26,36 +26,77 @@ The articles are written in italian, you can read them at the follow links:
 
 ## What pynuTS is (and what it is not)
 
-pynuTS is a small, deliberately readable implementation of three classic time
-series techniques: **DTW based clustering**, **SAX encoding** and **rolling mean
-imputation**, plus a compact **ARIMA/SARIMA generator** for building synthetic
-datasets.
+pynuTS is a small, deliberately readable library about **symbolic
+representations of time series**: turning real numbers into symbols from a
+finite alphabet, and what you can do once you have.
+
+That idea is older than it looks and younger than it sounds. SAX did it in 2003
+so that series could be indexed and compared cheaply. Chronos does it in 2024 so
+that a transformer built for language can read a time series at all. Same move,
+opposite purposes, and every design choice follows from the purpose:
+
+|  | SAX (2003) | Chronos-style (2024) |
+| --- | --- | --- |
+| scaling | z-normalization | divide by mean \|x\| |
+| keeps the sign | no | yes |
+| time axis | PAA, w points per symbol | one token per point |
+| cut points | equiprobable gaussian | uniform over a fixed range |
+| alphabet | 3 to 10 symbols | thousands of tokens |
+| invertible | no | yes, up to half a bin |
+| distance with a proven bound | yes, MINDIST | no |
+| readable by a human, or an LLM | yes | no |
+
+`python demos/symbolic_representations.py` prints that comparison computed on a
+real series, side by side.
+
+Around this core sit the classics the library started from: **DTW clustering**
+with DBA barycenters, **rolling mean imputation**, and a compact
+**ARIMA/SARIMA generator** for synthetic data.
 
 It is meant for **learning, teaching and prototyping**. Every algorithm is
 implemented in plain numpy in a few dozen readable lines, which is exactly what
-the mature libraries cannot offer.
-
-For production work on real volumes you probably want one of these instead, and
-that is a recommendation, not a disclaimer:
+the mature libraries cannot offer. For production work on real volumes you
+probably want one of these instead, and that is a recommendation, not a
+disclaimer:
 
 | Need | Use |
 | --- | --- |
 | Fast DTW, DBA barycenters, soft-DTW | [tslearn](https://github.com/tslearn-team/tslearn), [aeon](https://github.com/aeon-toolkit/aeon), [dtaidistance](https://github.com/wannesm/dtaidistance) |
 | SAX / SFA / BOSS / WEASEL | [pyts](https://github.com/johannfaouzi/pyts), [aeon](https://github.com/aeon-toolkit/aeon) |
 | Missing value imputation | [PyPOTS](https://github.com/WenjieDu/PyPOTS), [sktime](https://github.com/sktime/sktime) |
-| Forecasting | [Nixtla](https://github.com/Nixtla/statsforecast), [darts](https://github.com/unit8co/darts) |
+| Forecasting, foundation models | [Nixtla](https://github.com/Nixtla/statsforecast), [darts](https://github.com/unit8co/darts), [Chronos](https://github.com/amazon-science/chronos-forecasting) |
 
 ### Known approximations
 
-* **`NaiveSAX` uses empirical quantiles**, not the equiprobable gaussian
-  breakpoints of the original paper, and does not z-normalize. It therefore does
-  **not** give the MINDIST lower-bounding guarantee, so it cannot be used for
-  indexing. Encodings are comparable across series only if you `fit` once and
-  `transform` many, see below.
+* **`pynuTS.quantize` implements the tokenization scheme, not the model.** There
+  are no weights here, no vocabulary layout and no special tokens: Chronos
+  reserves a couple of ids for padding and end-of-sequence, which is beside the
+  point being made.
+* **`NaiveSAX` is the older, non-canonical variant**, kept for backward
+  compatibility. It uses empirical quantiles instead of gaussian breakpoints and
+  does not z-normalize, so it gives no lower-bounding guarantee. Use
+  `pynuTS.sax.SAX` for anything new.
 * **`DTWKmeans` is plain numpy**, so it is fine for hundreds of short series and
   not for hundreds of thousands. There is no JIT, no pruning and no GPU.
 
 ## What's New?
+
+New features in *version 0.5.0*:
+
+* **`pynuTS.sax.SAX`, canonical SAX**: z-normalization, equiprobable gaussian
+  breakpoints and **`MINDIST` with the lower-bounding guarantee**, verified on
+  24000 random pairs across six families of series. The breakpoints do not come
+  from the data, which is what makes encodings comparable across series
+* **`pynuTS.quantize.MeanScaleQuantizer`**: mean scaling plus uniform binning,
+  the scheme that turns a series into tokens for a language model. Invertible,
+  with a round-trip error bounded by half a bin
+* **`pynuTS.report.describe`**: a compact, self-explaining textual description of
+  a series and its encoding, ready to drop into a prompt. No API client, no key,
+  no network
+* `demos/symbolic_representations.py`, the two representations side by side on
+  the same series, with a smoke test so it cannot rot
+* `norm_ppf` and `gaussian_breakpoints`, an inverse normal CDF accurate to
+  machine precision without pulling in scipy
 
 New features in *version 0.4.0*:
 
@@ -202,7 +243,88 @@ print(dba(shifted).max())              # 0.997  DBA keeps it
 
 `DTWKmeans` uses `dba` for its centroids by default.
 
-### SAX Encoding
+### SAX, canonical
+
+```python
+import numpy as np
+from pynuTS.sax import SAX, znorm
+
+sax = SAX(alphabet=5, windows=24).fit()      # fit looks at no data at all
+
+a = np.sin(np.linspace(0, 20, 720))
+b = a * 50 + 1000                            # same shape, different level
+
+print(sax.transform(a))                      # 'deeecbaaaceeedbaaabd...'
+print(sax.transform(a) == sax.transform(b))  # True: z-normalization removed the level
+
+# MINDIST works on the 30 characters and never overstates the true distance
+c = np.sin(np.linspace(0, 20, 720) + 1.0)
+lower_bound = sax.mindist(sax.transform(a), sax.transform(c), n=720)
+assert lower_bound <= np.linalg.norm(znorm(a) - znorm(c))
+```
+
+That inequality is the point: a candidate whose `mindist` already exceeds the
+best distance found so far can be discarded without ever touching the raw
+series, and no true match is lost.
+
+### Tokenization for a language model
+
+```python
+import numpy as np
+from pynuTS.quantize import MeanScaleQuantizer
+
+x = np.sin(np.linspace(0, 6, 100)) * 20 + 100
+
+q = MeanScaleQuantizer(n_bins=4096).fit()
+tokens = q.transform(x)                      # array([2184, 2186, 2187, ...])
+back = q.inverse_transform(tokens)
+
+print(np.abs(back - x).max())                # <= half a bin, times the scale
+print(q.bin_width() / 2 * q.scales_[0])
+```
+
+### Describing a series to an LLM
+
+A language model cannot read an array, and it cannot read an embedding either.
+It can read this:
+
+```python
+from pynuTS.report import describe, segment_summary
+
+summary = segment_summary(series, sax)
+anomalies = summary.index[summary.zscore.abs() > 1.5].tolist()
+
+print(describe(series, sax, anomalies=anomalies, name="demand_kwh"))
+```
+
+```
+Time series "demand_kwh": 720 points from 2024-01-01 to 2024-01-30 23:00.
+Raw values: min 9.963, max 74.85, mean 47.39, std 14.77.
+
+SAX encoding: 5 symbols, 30 segments of up to 24 points.
+The series is standardized first, so the symbols describe its shape, not its
+level: z is the number of standard deviations from the mean.
+  a: z < -0.84
+  b: -0.84 <= z < -0.25
+  c: -0.25 <= z < +0.25
+  d: +0.25 <= z < +0.84
+  e: z >= +0.84
+
+Encoding: dddcbbcdddccbcaadcbbcdddccbcdd
+
+Segments:
+     0  2024-01-01  d  mean      52.44  z +0.34
+    ...
+    14  2024-01-15  a  mean      13.39  z -2.30   <- ANOMALY
+    15  2024-01-16  a  mean      14.29  z -2.24   <- ANOMALY
+
+Flagged segments: 14, 15.
+```
+
+pynuTS stops there on purpose. What you ask the model, and which model you ask,
+is your business.
+
+### SAX Encoding, the old NaiveSAX
 
 ```python
 import numpy as np
@@ -258,11 +380,14 @@ series = make_flat_dataset([-1.0, 0.0, 1.0], samples=10, lengths=[50], random_se
 │   ├── barycenter.py     # DTW Barycenter Averaging (DBA)
 │   ├── clustering.py     # Time series clustering using DTW
 │   ├── datasets.py       # Labelled toy datasets
-│   ├── decomposition.py  # Time series decomposition using SAX
+│   ├── decomposition.py  # NaiveSAX, the old non-canonical variant
 │   ├── dtw.py            # Dynamic Time Warping engine (distance and path)
 │   ├── generator.py      # AR, MA, ARMA, ARIMA, SARIMA generators
 │   ├── impute.py         # Time series imputation
 │   ├── naive_dtw.py      # Deprecated wrapper over pynuTS.dtw
+│   ├── quantize.py       # Mean-scaled uniform tokenization (Chronos-style)
+│   ├── report.py         # Textual description of an encoding, for an LLM
+│   ├── sax.py            # Canonical SAX with MINDIST lower bounding
 │   └── version.py        # Stores the library version
 ├── demos/                 # Notebooks, plotting helpers, compatibility shims
 ├── test/                  # Unit tests
@@ -282,7 +407,7 @@ If you use pynuTS in a scientific publication, please cite:
 @misc{pynuTS,
   author =       {Nicola Procopio and Marcello Morchio},
   title =        {pynuTS},
-  version = 	 {0.4.0},
+  version = 	 {0.5.0},
   howpublished = {\url{https://github.com/nickprock/pynuTS/}},
   year =         {2021}
 }
